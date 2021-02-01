@@ -60,6 +60,7 @@ bool Xrender_init(Xrender_init_t i)
 		{
 			//Create renderer for window
 			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
+            SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
 			if( gRenderer == NULL )
 			{
 				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -94,7 +95,7 @@ bool Xrender_tick()
     SDL_RenderClear( gRenderer );
     for (int x = 0; x < object_stack.size(); x++)
     {
-        if (object_stack[x]->visable == true)
+        if (object_stack[x]->visable == true) //Texture re-gen
         {
             if (object_stack[x]->texture == NULL) //We need to render the texture!
             {
@@ -133,28 +134,35 @@ bool Xrender_tick()
                         SDL_FreeSurface( loadedSurface );
                     }
                 }
-                if (object_stack[x]->type == "LINE")
+            }
+        }
+        if (object_stack[x]->visable == true)
+        {
+            if (object_stack[x]->type == "LINE")
+            {
+                thickLineRGBA(gRenderer, object_stack[x]->line.p1.x, object_stack[x]->line.p1.y, object_stack[x]->line.p2.x, object_stack[x]->line.p2.y, object_stack[x]->line.width, object_stack[x]->line.color.r, object_stack[x]->line.color.g, object_stack[x]->line.color.b, object_stack[x]->opacity);
+            }
+            else if (object_stack[x]->type == "BOX")
+            {
+                roundedBoxRGBA(gRenderer, object_stack[x]->box.p1.x, object_stack[x]->box.p1.y, object_stack[x]->box.p2.x, object_stack[x]->box.p2.y, object_stack[x]->box.radius, object_stack[x]->box.color.r, object_stack[x]->box.color.g, object_stack[x]->box.color.b, object_stack[x]->opacity);
+            }
+            else //We are a texture
+            {
+                dst.x = object_stack[x]->position.x;
+                dst.y = object_stack[x]->position.y;
+                if (object_stack[x]->size.w > 0 && object_stack[x]->size.h > 0)
                 {
-                    SDL_Renderer *r = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
-                    thickLineRGBA(r, object_stack[x]->line.p1.x, object_stack[x]->line.p1.y, object_stack[x]->line.p2.x, object_stack[x]->line.p2.y, object_stack[x]->line.width, object_stack[x]->line.color.r, object_stack[x]->line.color.g, object_stack[x]->line.color.b, object_stack[x]->opacity);
-                    object_stack[x]->texture = SDL_CreateTexture(r, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, object_stack[x]->size.w, object_stack[x]->size.h);
-                    SDL_DestroyRenderer(r);
+                    dst.w = object_stack[x]->size.w;
+                    dst.h = object_stack[x]->size.h;
                 }
+                else
+                {
+                    SDL_QueryTexture(object_stack[x]->texture, NULL, NULL, &dst.w, &dst.h);
+                }
+                SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
+                SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->opacity );
+                SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->angle, NULL, SDL_FLIP_NONE );
             }
-            dst.x = object_stack[x]->position.x;
-            dst.y = object_stack[x]->position.y;
-            if (object_stack[x]->size.w > 0 && object_stack[x]->size.h > 0)
-            {
-                dst.w = object_stack[x]->size.w;
-                dst.h = object_stack[x]->size.h;
-            }
-            else
-            {
-                SDL_QueryTexture(object_stack[x]->texture, NULL, NULL, &dst.w, &dst.h);
-            }
-            SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
-            SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->opacity );
-            SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->angle, NULL, SDL_FLIP_NONE );
         }
     }
     SDL_RenderPresent( gRenderer );
@@ -237,13 +245,37 @@ Xrender_object_t *Xrender_push_line(string id_name, SDL_Rect p1, SDL_Rect p2, in
     o->opacity = 255;
     o->position.x = 0;
     o->position.y = 0;
-    o->size.w = 1000;
-    o->size.h = 1000;
+    o->size.w = 0;
+    o->size.h = 0;
     o->line.p1.x = p1.x;
     o->line.p1.y = p1.y;
     o->line.p2.x = p2.x;
     o->line.p2.y = p2.y;
     o->line.width = width;
+    o->line.color.r = 0;
+    o->line.color.g = 0;
+    o->line.color.b = 0;
+    o->texture = NULL;
+    object_stack.push_back(o);
+    return o;
+}
+Xrender_object_t *Xrender_push_box(string id_name, SDL_Rect p1, SDL_Rect p2, int radius)
+{
+    Xrender_object_t *o = new Xrender_object_t;
+    o->id_name = id_name; 
+    o->type = "BOX";
+    o->zindex = 0;
+    o->visable = true;
+    o->opacity = 255;
+    o->position.x = 0;
+    o->position.y = 0;
+    o->size.w = 0;
+    o->size.h = 0;
+    o->box.p1.x = p1.x;
+    o->box.p1.y = p1.y;
+    o->box.p2.x = p2.x;
+    o->box.p2.y = p2.y;
+    o->box.radius = radius;
     o->texture = NULL;
     object_stack.push_back(o);
     return o;

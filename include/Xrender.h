@@ -27,6 +27,13 @@ struct Xrender_line_object_t{
     int width;
     Xrender_color_t color;
 };
+struct Xrender_box_object_t{
+    SDL_Rect p1;
+    SDL_Rect p2;
+    int radius;
+    void (*click_callback)();
+    Xrender_color_t color;
+};
 struct Xrender_object_t{
     std::string id_name;
     std::string group_name;
@@ -41,6 +48,7 @@ struct Xrender_object_t{
     Xrender_text_object_t text;
     Xrender_image_object_t image;
     Xrender_line_object_t line;
+    Xrender_box_object_t box;
 };
 struct Xrender_init_t{
     std::string window_title;
@@ -63,6 +71,7 @@ void Xrender_push_key_event(Xrender_key_event_t); //Push a key event to the even
 Xrender_object_t * Xrender_push_text(std::string, std::string, int, Xrender_color_t, SDL_Rect);
 Xrender_object_t *Xrender_push_image(string, string, SDL_Rect, int, int);
 Xrender_object_t *Xrender_push_line(string, SDL_Rect, SDL_Rect, int);
+Xrender_object_t *Xrender_push_box(string, SDL_Rect, SDL_Rect, int);
 /* End Object Creation */
 
 
