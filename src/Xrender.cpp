@@ -152,15 +152,26 @@ void Xrender_push_key_event(Xrender_key_event_t k)
 {
     key_events.push_back(k);
 }
-void Xrender_push_text(string id_name, string textval, int font_size, Xrender_color_t color, SDL_Rect position)
+Xrender_object_t *Xrender_push_text(string id_name, string textval, int font_size, Xrender_color_t color, SDL_Rect position)
 {
     Xrender_text_object_t t = {textval, font_size, color};
-    Xrender_object_t o = {id_name, "", "TEXT", 0, true, 255, 0, position, {0, 0}, NULL};
+    //Xrender_object_t o = {id_name, "", "TEXT", 0, true, 255, 0, position, {0, 0}, NULL};
+    Xrender_object_t o;
+    o.id_name = id_name;
+    o.type = "TEXT";
+    o.zindex = 0;
+    o.visable = true;
+    o.opacity = 255;
+    o.position = position;
+    o.size.w = 0;
+    o.size.h = 0;
     o.text = t;
     object_stack.push_back(o);
+    return &object_stack[object_stack.size() - 1];
 }
 void Xrender_dump_object_stack()
 {
+    printf("Beginning stack dump:\n");
     for (int x = 0; x < object_stack.size(); x++)
     {
         if (object_stack[x].type == "TEXT")
@@ -175,6 +186,7 @@ void Xrender_dump_object_stack()
             printf("\ttextval=%s\n", object_stack[x].text.textval.c_str());
         }
     }
+    printf("End stack dump:\n");
 }
 void Xrender_close()
 {

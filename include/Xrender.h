@@ -43,11 +43,20 @@ struct Xrender_key_event_t{
     void (*callback)();
 };
 
-bool Xrender_init(Xrender_init_t);
-bool Xrender_tick();
-void Xrender_push_key_event(Xrender_key_event_t);
-void Xrender_push_text(std::string, std::string, int, Xrender_color_t, SDL_Rect);
-void Xrender_close();
-void Xrender_dump_object_stack();
+bool Xrender_init(Xrender_init_t); //Init the library
+bool Xrender_tick(); //Poll events and respond to them
+void Xrender_push_key_event(Xrender_key_event_t); //Push a key event to the event stack
+
+/* Object Creation */
+Xrender_object_t * Xrender_push_text(std::string, std::string, int, Xrender_color_t, SDL_Rect);
+/* End Object Creation */
+
+
+/* Object Manipulation */
+void Xrender_set_property(std::string, std::string, std::string);
+/* End Object Manipulation */
+
+void Xrender_close(); //Close the library
+void Xrender_dump_object_stack(); //Debug the object stack
 
 #endif
