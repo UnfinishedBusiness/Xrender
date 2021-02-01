@@ -135,10 +135,10 @@ bool Xrender_tick()
                 }
                 if (object_stack[x]->type == "LINE")
                 {
-                    SDL_Renderer *r;
+                    SDL_Renderer *r = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
                     thickLineRGBA(r, object_stack[x]->line.p1.x, object_stack[x]->line.p1.y, object_stack[x]->line.p2.x, object_stack[x]->line.p2.y, object_stack[x]->line.width, object_stack[x]->line.color.r, object_stack[x]->line.color.g, object_stack[x]->line.color.b, object_stack[x]->opacity);
                     object_stack[x]->texture = SDL_CreateTexture(r, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, object_stack[x]->size.w, object_stack[x]->size.h);
-                    
+                    SDL_DestroyRenderer(r);
                 }
             }
             dst.x = object_stack[x]->position.x;
@@ -234,11 +234,11 @@ Xrender_object_t *Xrender_push_line(string id_name, SDL_Rect p1, SDL_Rect p2, in
     o->type = "LINE";
     o->zindex = 0;
     o->visable = true;
-    o->opacity = 0;
+    o->opacity = 255;
     o->position.x = 0;
     o->position.y = 0;
-    o->size.w = 0;
-    o->size.h = 0;
+    o->size.w = 1000;
+    o->size.h = 1000;
     o->line.p1.x = p1.x;
     o->line.p1.y = p1.y;
     o->line.p2.x = p2.x;

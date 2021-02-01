@@ -31,7 +31,7 @@ void on_right_press()
 int main()
 {
     timer_one = Xrender_millis();
-    if (Xrender_init({"Test", 900, 700, {0, 0, 0, 0}}))
+    if (Xrender_init({"Test", 900, 700, {100, 100, 100, 0}}))
     {
         Xrender_push_key_event({"A", "KEYUP", &on_a_press});
         Xrender_push_key_event({"Up", "KEYUP", &on_up_press});
@@ -42,7 +42,7 @@ int main()
         text1->zindex = 10;
         text1->text.color = {255, 0, 0};
         text2 = Xrender_push_text("test1", "Second label", 30, {255, 255, 255}, {30, 30});
-        Xrender_push_image("background_image", "Background.png", {150,150}, 800, 400);
+        //Xrender_push_image("background_image", "Background.png", {150,150}, 800, 400);
 
         Xrender_push_line("TestLine", {100, 100}, {200, 200}, 5);
         while(Xrender_tick())

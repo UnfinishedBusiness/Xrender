@@ -12,7 +12,7 @@ INCLUDES = -I./include/ -I/usr/local/include
 CCFLAGS = -g `pkg-config --cflags sdl2`
  
 # compiler
-CCC = g++
+CCC = g++ -std=c++14
  
 # library paths
 LIBS = -L../ -L/usr/local/lib -lm `pkg-config --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_gfx
