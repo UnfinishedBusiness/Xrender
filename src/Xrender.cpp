@@ -7,6 +7,7 @@
 #include <chrono>
 #include <sys/time.h>
 #include <ctime>
+#include <algorithm> 
 #include <Xrender.h>
 
 using std::chrono::duration_cast;
@@ -85,10 +86,9 @@ bool Xrender_init(Xrender_init_t i)
 bool Xrender_tick()
 {
     SDL_SetRenderDrawColor( gRenderer, init.clear_color.r, init.clear_color.g, init.clear_color.b, init.clear_color.a );
-	/*sort( object_stack.begin(), object_stack.end(), [](const Xrender_object_t& lhs, const Xrender_object_t& rhs)
-	{
-   		return lhs.zindex < rhs.zindex;
-	});*/
+	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
+        return lhs->zindex < rhs->zindex;
+    });
     SDL_Rect dst;
     SDL_RenderClear( gRenderer );
     for (int x = 0; x < object_stack.size(); x++)
