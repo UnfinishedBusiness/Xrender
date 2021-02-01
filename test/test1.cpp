@@ -31,7 +31,7 @@ int main()
         Xrender_push_key_event({"Down", "KEYUP", &on_down_press});
 
         text1 = Xrender_push_text("test", "This is text", 30, {255, 255, 255}, {0, 0});
-        text2 = Xrender_push_text("test1", "Second label", 30, {255, 255, 255}, {30, 30});
+        //text2 = Xrender_push_text("test1", "Second label", 30, {255, 255, 255}, {30, 30});
         while(Xrender_tick())
         {
             //Program is running

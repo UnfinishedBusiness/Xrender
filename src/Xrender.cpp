@@ -154,9 +154,7 @@ void Xrender_push_key_event(Xrender_key_event_t k)
 }
 Xrender_object_t *Xrender_push_text(string id_name, string textval, int font_size, Xrender_color_t color, SDL_Rect position)
 {
-    Xrender_text_object_t t = {textval, font_size, color};
-    //Xrender_object_t o = {id_name, "", "TEXT", 0, true, 255, 0, position, {0, 0}, NULL};
-    Xrender_object_t *o = (Xrender_object_t*)malloc(sizeof(Xrender_object_t));
+    Xrender_object_t *o = new Xrender_object_t;
     o->id_name = id_name;
     o->type = "TEXT";
     o->zindex = 0;
@@ -165,7 +163,10 @@ Xrender_object_t *Xrender_push_text(string id_name, string textval, int font_siz
     o->position = position;
     o->size.w = 0;
     o->size.h = 0;
-    o->text = t;
+    o->text.textval = textval;
+    o->text.font_size = font_size;
+    o->text.color = color;
+    o->texture = NULL;
     object_stack.push_back(o);
     return o;
 }
