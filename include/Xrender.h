@@ -56,6 +56,7 @@ Xrender_object_t * Xrender_push_text(std::string, std::string, int, Xrender_colo
 void Xrender_set_property(std::string, std::string, std::string);
 /* End Object Manipulation */
 
+void Xrender_rebuilt_object(Xrender_object_t *o); //Flag an onbject for re-rendering
 void Xrender_close(); //Close the library
 void Xrender_dump_object_stack(); //Debug the object stack
 

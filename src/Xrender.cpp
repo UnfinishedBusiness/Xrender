@@ -13,7 +13,7 @@ SDL_Texture* gTexture = NULL;
 SDL_Event e;
 Xrender_init_t init;
 vector<Xrender_key_event_t> key_events;
-vector<Xrender_object_t> object_stack;
+vector<Xrender_object_t*> object_stack;
 
 bool Xrender_init(Xrender_init_t i)
 {
@@ -77,20 +77,20 @@ bool Xrender_tick()
     SDL_RenderClear( gRenderer );
     for (int x = 0; x < object_stack.size(); x++)
     {
-        if (object_stack[x].visable == true)
+        if (object_stack[x]->visable == true)
         {
-            if (object_stack[x].texture == NULL) //We need to render the texture!
+            if (object_stack[x]->texture == NULL) //We need to render the texture!
             {
-                if (object_stack[x].type == "TEXT")
+                if (object_stack[x]->type == "TEXT")
                 {
-                    printf("Rendering Text Texture!\n");
-                    TTF_Font* f = TTF_OpenFont("./Sans.ttf", object_stack[x].text.font_size);
+                    //printf("Rendering Text Texture!\n");
+                    TTF_Font* f = TTF_OpenFont("./Sans.ttf", object_stack[x]->text.font_size);
                     if (f)
                     {
-                        SDL_Color color = {object_stack[x].text.color.r, object_stack[x].text.color.g, object_stack[x].text.color.b};
-                        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(f, object_stack[x].text.textval.c_str(), color);
+                        SDL_Color color = {object_stack[x]->text.color.r, object_stack[x]->text.color.g, object_stack[x]->text.color.b};
+                        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(f, object_stack[x]->text.textval.c_str(), color);
                         //SDL_DestroyTexture(ObjectStack[x].texture);
-                        object_stack[x].texture = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage);
+                        object_stack[x]->texture = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage);
                         SDL_FreeSurface(surfaceMessage);
                         TTF_CloseFont(f);
                     }
@@ -100,20 +100,20 @@ bool Xrender_tick()
                     }
                 }
             }
-            dst.x = object_stack[x].position.x;
-            dst.y = object_stack[x].position.y;
-            if (object_stack[x].size.w > 0 && object_stack[x].size.h > 0)
+            dst.x = object_stack[x]->position.x;
+            dst.y = object_stack[x]->position.y;
+            if (object_stack[x]->size.w > 0 && object_stack[x]->size.h > 0)
             {
-                dst.w = object_stack[x].size.w;
-                dst.h = object_stack[x].size.h;
+                dst.w = object_stack[x]->size.w;
+                dst.h = object_stack[x]->size.h;
             }
             else
             {
-                SDL_QueryTexture(object_stack[x].texture, NULL, NULL, &dst.w, &dst.h);
+                SDL_QueryTexture(object_stack[x]->texture, NULL, NULL, &dst.w, &dst.h);
             }
-            SDL_SetTextureBlendMode( object_stack[x].texture, SDL_BLENDMODE_BLEND );
-            SDL_SetTextureAlphaMod( object_stack[x].texture, object_stack[x].opacity );
-            SDL_RenderCopyEx( gRenderer, object_stack[x].texture, NULL, &dst, object_stack[x].angle, NULL, SDL_FLIP_NONE );
+            SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
+            SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->opacity );
+            SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->angle, NULL, SDL_FLIP_NONE );
         }
     }
     SDL_RenderPresent( gRenderer );
@@ -156,40 +156,50 @@ Xrender_object_t *Xrender_push_text(string id_name, string textval, int font_siz
 {
     Xrender_text_object_t t = {textval, font_size, color};
     //Xrender_object_t o = {id_name, "", "TEXT", 0, true, 255, 0, position, {0, 0}, NULL};
-    Xrender_object_t o;
-    o.id_name = id_name;
-    o.type = "TEXT";
-    o.zindex = 0;
-    o.visable = true;
-    o.opacity = 255;
-    o.position = position;
-    o.size.w = 0;
-    o.size.h = 0;
-    o.text = t;
+    Xrender_object_t *o = (Xrender_object_t*)malloc(sizeof(Xrender_object_t));
+    o->id_name = id_name;
+    o->type = "TEXT";
+    o->zindex = 0;
+    o->visable = true;
+    o->opacity = 255;
+    o->position = position;
+    o->size.w = 0;
+    o->size.h = 0;
+    o->text = t;
     object_stack.push_back(o);
-    return &object_stack[object_stack.size() - 1];
+    return o;
+}
+void Xrender_rebuilt_object(Xrender_object_t *o)
+{
+    SDL_DestroyTexture( o->texture );
+    o->texture = NULL;
 }
 void Xrender_dump_object_stack()
 {
     printf("Beginning stack dump:\n");
     for (int x = 0; x < object_stack.size(); x++)
     {
-        if (object_stack[x].type == "TEXT")
+        if (object_stack[x]->type == "TEXT")
         {
             printf("[Object %d](TEXT)\n", x);
-            printf("\tid_name=%s\n", object_stack[x].id_name.c_str());
-            printf("\tgroup_name=%s\n", object_stack[x].group_name.c_str());
-            printf("\tzindex=%d\n", object_stack[x].zindex);
-            printf("\tvisable=%s\n", object_stack[x].visable ? "true" : "false");
-            printf("\topacity=%d\n", object_stack[x].opacity);
-            printf("\tangle=%.4f\n", object_stack[x].angle);
-            printf("\ttextval=%s\n", object_stack[x].text.textval.c_str());
+            printf("\tid_name=%s\n", object_stack[x]->id_name.c_str());
+            printf("\tgroup_name=%s\n", object_stack[x]->group_name.c_str());
+            printf("\tzindex=%d\n", object_stack[x]->zindex);
+            printf("\tvisable=%s\n", object_stack[x]->visable ? "true" : "false");
+            printf("\topacity=%d\n", object_stack[x]->opacity);
+            printf("\tangle=%.4f\n", object_stack[x]->angle);
+            printf("\ttextval=%s\n", object_stack[x]->text.textval.c_str());
         }
     }
     printf("End stack dump:\n");
 }
 void Xrender_close()
 {
+    for (int x = 0; x < object_stack.size(); x++)
+    {
+        SDL_DestroyTexture( object_stack[x]->texture );
+        object_stack[x]->texture = NULL;
+    }
     SDL_DestroyRenderer( gRenderer );
     gRenderer = NULL;
 	SDL_DestroyWindow( gWindow );
