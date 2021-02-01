@@ -212,6 +212,7 @@ Xrender_object_t *Xrender_push_text(string id_name, string textval, int font_siz
     o->position = position;
     o->size.w = 0;
     o->size.h = 0;
+    o->angle = 0;
     o->text.textval = textval;
     o->text.font_size = font_size;
     o->text.color = color;
@@ -231,6 +232,7 @@ Xrender_object_t *Xrender_push_image(string id_name, string path, SDL_Rect posit
     o->size.w = width;
     o->size.h = height;
     o->image.path = path;
+    o->angle = 0;
     o->texture = NULL;
     object_stack.push_back(o);
     return o;
@@ -255,6 +257,7 @@ Xrender_object_t *Xrender_push_line(string id_name, SDL_Rect p1, SDL_Rect p2, in
     o->line.color.r = 0;
     o->line.color.g = 0;
     o->line.color.b = 0;
+    o->angle = 0;
     o->texture = NULL;
     object_stack.push_back(o);
     return o;
@@ -276,6 +279,7 @@ Xrender_object_t *Xrender_push_box(string id_name, SDL_Rect p1, SDL_Rect p2, int
     o->box.p2.x = p2.x;
     o->box.p2.y = p2.y;
     o->box.radius = radius;
+    o->angle = 0;
     o->texture = NULL;
     object_stack.push_back(o);
     return o;
