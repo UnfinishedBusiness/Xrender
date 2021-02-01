@@ -40,6 +40,7 @@ int main()
 
         text1 = Xrender_push_text("test", "This is text", 30, {255, 255, 255}, {100, 100});
         text2 = Xrender_push_text("test1", "Second label", 30, {255, 255, 255}, {30, 30});
+        Xrender_push_image("background_image", "Background.png", {150,150}, 800, 400);
         while(Xrender_tick())
         {
             if ((Xrender_millis() - timer_one) > 1000)

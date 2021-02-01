@@ -18,6 +18,9 @@ struct Xrender_text_object_t{
     int font_size;
     Xrender_color_t color;
 };
+struct Xrender_image_object_t{
+    std::string path;
+};
 struct Xrender_object_t{
     std::string id_name;
     std::string group_name;
@@ -30,6 +33,7 @@ struct Xrender_object_t{
     SDL_Rect size;
     SDL_Texture* texture;
     Xrender_text_object_t text;
+    Xrender_image_object_t image;
 };
 struct Xrender_init_t{
     std::string window_title;
@@ -50,6 +54,7 @@ void Xrender_push_key_event(Xrender_key_event_t); //Push a key event to the even
 
 /* Object Creation */
 Xrender_object_t * Xrender_push_text(std::string, std::string, int, Xrender_color_t, SDL_Rect);
+Xrender_object_t *Xrender_push_image(string, string, SDL_Rect, int, int);
 /* End Object Creation */
 
 

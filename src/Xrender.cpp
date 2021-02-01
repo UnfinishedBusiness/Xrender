@@ -115,6 +115,23 @@ bool Xrender_tick()
                         printf("Could not render text!\n");
                     }
                 }
+                if (object_stack[x]->type == "IMAGE")
+                {
+                    SDL_Surface* loadedSurface = IMG_Load( object_stack[x]->image.path.c_str() );
+                    if( loadedSurface == NULL )
+                    {
+                        printf( "Unable to load image %s! SDL_image Error: %s\n", object_stack[x]->image.path.c_str(), IMG_GetError() );
+                    }
+                    else
+                    {
+                        object_stack[x]->texture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
+                        if( object_stack[x]->texture == NULL )
+                        {
+                            printf( "Unable to create texture from %s! SDL Error: %s\n", object_stack[x]->image.path.c_str(), SDL_GetError() );
+                        }
+                        SDL_FreeSurface( loadedSurface );
+                    }
+                }
             }
             dst.x = object_stack[x]->position.x;
             dst.y = object_stack[x]->position.y;
@@ -186,6 +203,22 @@ Xrender_object_t *Xrender_push_text(string id_name, string textval, int font_siz
     object_stack.push_back(o);
     return o;
 }
+Xrender_object_t *Xrender_push_image(string id_name, string path, SDL_Rect position, int width, int height)
+{
+    Xrender_object_t *o = new Xrender_object_t;
+    o->id_name = id_name;
+    o->type = "IMAGE";
+    o->zindex = 0;
+    o->visable = true;
+    o->opacity = 255;
+    o->position = position;
+    o->size.w = width;
+    o->size.h = height;
+    o->image.path = path;
+    o->texture = NULL;
+    object_stack.push_back(o);
+    return o;
+}
 void Xrender_rebuilt_object(Xrender_object_t *o)
 {
     SDL_DestroyTexture( o->texture );
@@ -206,6 +239,17 @@ void Xrender_dump_object_stack()
             printf("\topacity=%d\n", object_stack[x]->opacity);
             printf("\tangle=%.4f\n", object_stack[x]->angle);
             printf("\ttextval=%s\n", object_stack[x]->text.textval.c_str());
+        }
+        if (object_stack[x]->type == "IMAGE")
+        {
+            printf("[Object %d](TEXT)\n", x);
+            printf("\tid_name=%s\n", object_stack[x]->id_name.c_str());
+            printf("\tgroup_name=%s\n", object_stack[x]->group_name.c_str());
+            printf("\tzindex=%d\n", object_stack[x]->zindex);
+            printf("\tvisable=%s\n", object_stack[x]->visable ? "true" : "false");
+            printf("\topacity=%d\n", object_stack[x]->opacity);
+            printf("\tangle=%.4f\n", object_stack[x]->angle);
+            printf("\tpath=%s\n", object_stack[x]->image.path.c_str());
         }
     }
     printf("End stack dump:\n");
