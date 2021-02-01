@@ -43,6 +43,7 @@ struct Xrender_key_event_t{
     void (*callback)();
 };
 
+unsigned long Xrender_millis();
 bool Xrender_init(Xrender_init_t); //Init the library
 bool Xrender_tick(); //Poll events and respond to them
 void Xrender_push_key_event(Xrender_key_event_t); //Push a key event to the event stack

@@ -4,8 +4,24 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <chrono>
+#include <sys/time.h>
+#include <ctime>
 #include <Xrender.h>
 
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::seconds;
+using std::chrono::system_clock;
+
+auto program_start_time = chrono::steady_clock::now();
+
+unsigned long Xrender_millis()
+{
+  auto end = chrono::steady_clock::now();
+  unsigned long m = (unsigned long)chrono::duration_cast<chrono::milliseconds>(end - program_start_time).count();
+  return m;
+}
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
