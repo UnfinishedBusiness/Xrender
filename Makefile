@@ -15,7 +15,7 @@ CCFLAGS = -g `pkg-config --cflags sdl2`
 CCC = g++
  
 # library paths
-LIBS = -L../ -L/usr/local/lib -lm `pkg-config --libs sdl2` -lSDL2_image -lSDL2_ttf
+LIBS = -L../ -L/usr/local/lib -lm `pkg-config --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_gfx
  
 # compile flags
 LDFLAGS = -g

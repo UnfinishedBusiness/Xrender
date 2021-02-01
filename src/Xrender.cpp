@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <SDL2_gfxPrimitives.h>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -132,6 +133,13 @@ bool Xrender_tick()
                         SDL_FreeSurface( loadedSurface );
                     }
                 }
+                if (object_stack[x]->type == "LINE")
+                {
+                    SDL_Renderer *r;
+                    thickLineRGBA(r, object_stack[x]->line.p1.x, object_stack[x]->line.p1.y, object_stack[x]->line.p2.x, object_stack[x]->line.p2.y, object_stack[x]->line.width, object_stack[x]->line.color.r, object_stack[x]->line.color.g, object_stack[x]->line.color.b, object_stack[x]->opacity);
+                    object_stack[x]->texture = SDL_CreateTexture(r, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, object_stack[x]->size.w, object_stack[x]->size.h);
+                    
+                }
             }
             dst.x = object_stack[x]->position.x;
             dst.y = object_stack[x]->position.y;
@@ -219,6 +227,27 @@ Xrender_object_t *Xrender_push_image(string id_name, string path, SDL_Rect posit
     object_stack.push_back(o);
     return o;
 }
+Xrender_object_t *Xrender_push_line(string id_name, SDL_Rect p1, SDL_Rect p2, int width)
+{
+    Xrender_object_t *o = new Xrender_object_t;
+    o->id_name = id_name; 
+    o->type = "LINE";
+    o->zindex = 0;
+    o->visable = true;
+    o->opacity = 0;
+    o->position.x = 0;
+    o->position.y = 0;
+    o->size.w = 0;
+    o->size.h = 0;
+    o->line.p1.x = p1.x;
+    o->line.p1.y = p1.y;
+    o->line.p2.x = p2.x;
+    o->line.p2.y = p2.y;
+    o->line.width = width;
+    o->texture = NULL;
+    object_stack.push_back(o);
+    return o;
+}
 void Xrender_rebuilt_object(Xrender_object_t *o)
 {
     SDL_DestroyTexture( o->texture );
@@ -242,7 +271,7 @@ void Xrender_dump_object_stack()
         }
         if (object_stack[x]->type == "IMAGE")
         {
-            printf("[Object %d](TEXT)\n", x);
+            printf("[Object %d](IMAGE)\n", x);
             printf("\tid_name=%s\n", object_stack[x]->id_name.c_str());
             printf("\tgroup_name=%s\n", object_stack[x]->group_name.c_str());
             printf("\tzindex=%d\n", object_stack[x]->zindex);
@@ -250,6 +279,19 @@ void Xrender_dump_object_stack()
             printf("\topacity=%d\n", object_stack[x]->opacity);
             printf("\tangle=%.4f\n", object_stack[x]->angle);
             printf("\tpath=%s\n", object_stack[x]->image.path.c_str());
+        }
+        if (object_stack[x]->type == "LINE")
+        {
+            printf("[Object %d](LINE)\n", x);
+            printf("\tid_name=%s\n", object_stack[x]->id_name.c_str());
+            printf("\tgroup_name=%s\n", object_stack[x]->group_name.c_str());
+            printf("\tzindex=%d\n", object_stack[x]->zindex);
+            printf("\tvisable=%s\n", object_stack[x]->visable ? "true" : "false");
+            printf("\topacity=%d\n", object_stack[x]->opacity);
+            printf("\tangle=%.4f\n", object_stack[x]->angle);
+            printf("\tp1=(%d, %d)\n", object_stack[x]->line.p1.x, object_stack[x]->line.p1.y);
+            printf("\tp2=(%d, %d)\n", object_stack[x]->line.p2.x, object_stack[x]->line.p2.y);
+            printf("\twidth=%d\n", object_stack[x]->line.width);
         }
     }
     printf("End stack dump:\n");
@@ -260,6 +302,7 @@ void Xrender_close()
     {
         SDL_DestroyTexture( object_stack[x]->texture );
         object_stack[x]->texture = NULL;
+        free(object_stack[x]);
     }
     SDL_DestroyRenderer( gRenderer );
     gRenderer = NULL;

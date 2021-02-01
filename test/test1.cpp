@@ -18,7 +18,7 @@ void on_up_press()
 }
 void on_down_press()
 {
-    text1->text.font_size -= 10;
+    //text1->text.font_size -= 10;
     text1->angle -= 10;
     Xrender_rebuilt_object(text1);
 }
@@ -43,6 +43,8 @@ int main()
         text1->text.color = {255, 0, 0};
         text2 = Xrender_push_text("test1", "Second label", 30, {255, 255, 255}, {30, 30});
         Xrender_push_image("background_image", "Background.png", {150,150}, 800, 400);
+
+        Xrender_push_line("TestLine", {100, 100}, {200, 200}, 5);
         while(Xrender_tick())
         {
             if ((Xrender_millis() - timer_one) > 1000)
@@ -51,5 +53,6 @@ int main()
                 printf("Timer one running!\n");
             }
         }
+        Xrender_close();
     }
 }
