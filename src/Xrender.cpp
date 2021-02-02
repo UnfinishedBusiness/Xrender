@@ -127,6 +127,7 @@ bool Xrender_tick()
                     else
                     {
                         object_stack[x]->texture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
+                        
                         if( object_stack[x]->texture == NULL )
                         {
                             printf( "Unable to create texture from %s! SDL Error: %s\n", object_stack[x]->image.path.c_str(), SDL_GetError() );
@@ -146,7 +147,7 @@ bool Xrender_tick()
             {
                 roundedBoxRGBA(gRenderer, object_stack[x]->box.p1.x, object_stack[x]->box.p1.y, object_stack[x]->box.p2.x, object_stack[x]->box.p2.y, object_stack[x]->box.radius, object_stack[x]->box.color.r, object_stack[x]->box.color.g, object_stack[x]->box.color.b, object_stack[x]->opacity);
             }
-            else //We are a texture
+            else
             {
                 dst.x = object_stack[x]->position.x;
                 dst.y = object_stack[x]->position.y;

@@ -27,6 +27,7 @@ void on_down_press()
     text1->angle -= 10;
     Xrender_rebuilt_object(text1);
     line1->line.p1.x += 5;
+    //Xrender_rebuilt_object(line1);
 }
 void on_right_press()
 {
@@ -79,8 +80,8 @@ int main()
         //Xrender_push_image("background_image", "Background.png", {150,150}, 800, 400);
 
         line1 = Xrender_push_line("TestLine", {100, 100}, {200, 200}, 5);
-        box = Xrender_push_box("TestBox", {100, 100}, {200, 200}, 5);
-        box->box.color.b = 200;
+        //box = Xrender_push_box("TestBox", {100, 100}, {200, 200}, 5);
+        //box->box.color.b = 200;
 
         int x_pos = 10;
 
