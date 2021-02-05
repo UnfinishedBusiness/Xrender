@@ -11,6 +11,15 @@
 #include <algorithm> 
 #include <Xrender.h>
 
+SDL_Window* gWindow = NULL;
+SDL_Renderer* gRenderer = NULL;
+SDL_Texture* gTexture = NULL;
+SDL_Event e;
+Xrender_init_t init;
+vector<Xrender_key_event_t> key_events;
+vector<Xrender_object_t*> object_stack;
+vector<Xrender_timer_t> timers;
+
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -24,14 +33,6 @@ unsigned long Xrender_millis()
   unsigned long m = (unsigned long)chrono::duration_cast<chrono::milliseconds>(end - program_start_time).count();
   return m;
 }
-
-SDL_Window* gWindow = NULL;
-SDL_Renderer* gRenderer = NULL;
-SDL_Texture* gTexture = NULL;
-SDL_Event e;
-Xrender_init_t init;
-vector<Xrender_key_event_t> key_events;
-vector<Xrender_object_t*> object_stack;
 
 bool Xrender_init(Xrender_init_t i)
 {
@@ -184,15 +185,32 @@ bool Xrender_tick()
             {
                 if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
                 {
-                    key_events.at(x).callback();
+                    if (key_events.at(x).callback != NULL)
+                    {
+                        key_events.at(x).callback();
+                    }
                 }
             }
             if (key_events.at(x).type == "KEYDOWN" && e.type == SDL_KEYDOWN)
             {
                 if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
                 {
-                    key_events.at(x).callback();
+                    if (key_events.at(x).callback != NULL)
+                    {
+                        key_events.at(x).callback();
+                    }
                 }
+            }
+        }
+    }
+    for (int x = 0; x < timers.size(); x++)
+    {
+        if ((Xrender_millis() - timers[x].timer) > timers[x].intervol)
+        {
+            timers[x].timer = Xrender_millis();
+            if (timers[x].callback != NULL)
+            {
+                timers[x].callback();
             }
         }
     }

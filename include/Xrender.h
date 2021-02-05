@@ -62,8 +62,14 @@ struct Xrender_key_event_t{
     std::string type; //KEYUP, KEYDOWN
     void (*callback)();
 };
+struct Xrender_timer_t{
+    unsigned long timer;
+    unsigned long intervol;
+    void (*callback)();
+};
 extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;
+extern std::vector<Xrender_timer_t> timers;
 
 unsigned long Xrender_millis();
 bool Xrender_init(Xrender_init_t); //Init the library
@@ -81,6 +87,10 @@ Xrender_object_t *Xrender_push_box(string, SDL_Rect, SDL_Rect, int);
 /* Object Manipulation */
 void Xrender_set_property(std::string, std::string, std::string);
 /* End Object Manipulation */
+
+/* Timers */
+void Xrender_push_timer(unsigned long, void (*)());
+/* End Timers */
 
 void Xrender_rebuilt_object(Xrender_object_t *o); //Flag an onbject for re-rendering
 void Xrender_close(); //Close the library

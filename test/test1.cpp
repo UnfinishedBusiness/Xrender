@@ -7,7 +7,6 @@ Xrender_object_t *box;
 
 int bar_value = 100;
 Xrender_object_t *bar[100];
-unsigned long timer_one;
 
 void on_a_press()
 {
@@ -64,7 +63,6 @@ void on_left_press()
 
 int main()
 {
-    timer_one = Xrender_millis();
     if (Xrender_init({"Test", 900, 700, {100, 100, 100, 0}}))
     {
         Xrender_push_key_event({"A", "KEYUP", &on_a_press});
@@ -90,14 +88,10 @@ int main()
             x_pos += 3;
             bar[x] = Xrender_push_line("Line-" + to_string(x), {x_pos, 300}, {x_pos, 350}, 3);
         }
+        Xrender_push_timer(100, on_down_press);
         while(Xrender_tick())
         {
-            if ((Xrender_millis() - timer_one) > 50)
-            {
-                timer_one = Xrender_millis();
-                //printf("Timer one running!\n");
-                on_down_press();
-            }
+            //Running!
         }
         Xrender_close();
     }
