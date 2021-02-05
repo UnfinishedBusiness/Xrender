@@ -1,5 +1,5 @@
 # source files.
-SRC =  	./src/Xrender.cpp
+SRC =  ./src/Xrender.cpp ./src/ObjectCreators.cpp ./src/EventCreators.cpp ./src/Debug.cpp
  
 OBJ = $(SRC:.cpp=.o)
  

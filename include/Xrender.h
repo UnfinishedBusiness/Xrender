@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <SDL.h>
 
 using namespace std;
@@ -61,6 +62,8 @@ struct Xrender_key_event_t{
     std::string type; //KEYUP, KEYDOWN
     void (*callback)();
 };
+extern std::vector<Xrender_object_t*> object_stack;
+extern std::vector<Xrender_key_event_t> key_events;
 
 unsigned long Xrender_millis();
 bool Xrender_init(Xrender_init_t); //Init the library
