@@ -60,9 +60,23 @@ void on_left_press()
        }   
    }
 }
-
+int test = 0;
+bool test_timer()
+{
+    on_down_press();
+    test++;
+    if (test > 100)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
 int main()
 {
+    printf("App Config Dir = %s\n", Xrender_GetConfigDir("test1").c_str());
     if (Xrender_init({"Test", 900, 700, {100, 100, 100, 0}}))
     {
         Xrender_push_key_event({"A", "KEYUP", &on_a_press});
@@ -88,7 +102,7 @@ int main()
             x_pos += 3;
             bar[x] = Xrender_push_line("Line-" + to_string(x), {x_pos, 300}, {x_pos, 350}, 3);
         }
-        Xrender_push_timer(100, on_down_press);
+        Xrender_push_timer(100, test_timer);
         while(Xrender_tick())
         {
             //Running!

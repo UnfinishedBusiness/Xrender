@@ -20,19 +20,6 @@ vector<Xrender_key_event_t> key_events;
 vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
-using std::chrono::system_clock;
-
-auto program_start_time = chrono::steady_clock::now();
-
-unsigned long Xrender_millis()
-{
-  auto end = chrono::steady_clock::now();
-  unsigned long m = (unsigned long)chrono::duration_cast<chrono::milliseconds>(end - program_start_time).count();
-  return m;
-}
 
 bool Xrender_init(Xrender_init_t i)
 {
@@ -210,7 +197,10 @@ bool Xrender_tick()
             timers[x].timer = Xrender_millis();
             if (timers[x].callback != NULL)
             {
-                timers[x].callback();
+                if (timers[x].callback() == false) //Dont repeat
+                {
+                    timers.erase(timers.begin() + x);
+                }
             }
         }
     }

@@ -65,7 +65,7 @@ struct Xrender_key_event_t{
 struct Xrender_timer_t{
     unsigned long timer;
     unsigned long intervol;
-    void (*callback)();
+    bool (*callback)();
 };
 extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;
@@ -89,8 +89,13 @@ void Xrender_set_property(std::string, std::string, std::string);
 /* End Object Manipulation */
 
 /* Timers */
-void Xrender_push_timer(unsigned long, void (*)());
+void Xrender_push_timer(unsigned long, bool (*)());
 /* End Timers */
+
+/* AppDirs & Environment */
+string Xrender_GetEnv(const std::string &);
+string Xrender_GetConfigDir(string);
+/* End AppDirs & Environment */
 
 void Xrender_rebuilt_object(Xrender_object_t *o); //Flag an onbject for re-rendering
 void Xrender_close(); //Close the library
