@@ -1,12 +1,12 @@
 # source files.
-SRC =  ./src/Xrender.cpp ./src/ObjectCreators.cpp ./src/EventCreators.cpp ./src/Debug.cpp ./src/Timers.cpp ./src/AppDirs.cpp
+SRC =  ./src/Xrender.cpp ./src/ObjectCreators.cpp ./src/EventCreators.cpp ./src/Debug.cpp ./src/Timers.cpp ./src/AppDirs.cpp ./src/dxflib/dl_dxf.cpp ./src/dxflib/dl_writer_ascii.cpp ./src/dxf/DXFParse_Class.cpp ./src/Dxf.cpp
  
 OBJ = $(SRC:.cpp=.o)
  
 OUT = ./lib/libXrender.a
  
 # include directories
-INCLUDES = -I./include/ -I/usr/local/include
+INCLUDES = -I/usr/local/include -I./src/
  
 # C++ compiler flags (-g -O2 -Wall)
 CCFLAGS = -g `pkg-config --cflags sdl2`
@@ -33,7 +33,7 @@ $(OUT): $(OBJ)
 depend: dep
  
 dep:
-	gcc -M $(CFLAGS) $(LIBS) $(CCFLAGS) $(INCLUDES) $(SRC)
+	g++ -M $(CFLAGS) $(LIBS) $(CCFLAGS) $(INCLUDES) $(SRC)
  
 clean:
 	rm -f $(OBJ) $(OUT) Makefile.bak

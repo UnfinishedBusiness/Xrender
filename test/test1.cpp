@@ -76,7 +76,8 @@ bool test_timer()
 }
 int main()
 {
-    printf("App Config Dir = %s\n", Xrender_GetConfigDir("test1").c_str());
+    printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
+    Xrender_parse_dxf_file("test.dxf");
     if (Xrender_init({"Test", 900, 700, {100, 100, 100, 0}}))
     {
         Xrender_push_key_event({"A", "KEYUP", &on_a_press});
