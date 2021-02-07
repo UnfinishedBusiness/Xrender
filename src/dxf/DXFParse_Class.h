@@ -36,6 +36,20 @@
  *
  * @author Andrew Mustun
  */
+
+struct polyline_vertex_t{
+    dxf_point_t point;
+    double bulge;
+};
+struct polyline_t{
+    std::vector<polyline_vertex_t> points;
+    bool isClosed;
+};
+struct spline_t{
+    std::vector<dxf_point_t> points;
+    bool isClosed;
+};
+
 class DXFParse_Class : public DL_CreationAdapter {
 public:
     DXFParse_Class();

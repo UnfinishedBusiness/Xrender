@@ -66,7 +66,7 @@ bool Xrender_init(nlohmann::json i)
     else
 	{
 		//Set texture filtering to linear
-		if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
+		if(!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ))
 		{
 			printf( "Warning: Linear texture filtering not enabled!\n");
 		}
@@ -111,25 +111,25 @@ bool Xrender_tick()
 {
     tick_performance_timestamp = Xrender_millis();
     SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["a"] );
-	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
+	/*sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
         return lhs->zindex < rhs->zindex;
-    });
+    });*/
     SDL_Rect dst;
     SDL_RenderClear( gRenderer );
     for (int x = 0; x < object_stack.size(); x++)
     {
-        if (object_stack[x]->visable == true) //Texture re-gen
+        if (object_stack[x]->data["visable"] == true) //Texture re-gen
         {
             if (object_stack[x]->texture == NULL) //We need to render the texture!
             {
-                if (object_stack[x]->type == "TEXT")
+                if (object_stack[x]->type == "text")
                 {
                     //printf("Rendering Text Texture!\n");
-                    TTF_Font* f = TTF_OpenFont("./Sans.ttf", object_stack[x]->text.font_size);
+                    TTF_Font* f = TTF_OpenFont(string(object_stack[x]->data["font"]).c_str(), object_stack[x]->data["font_size"]);
                     if (f)
                     {
-                        SDL_Color color = {object_stack[x]->text.color.r, object_stack[x]->text.color.g, object_stack[x]->text.color.b};
-                        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(f, object_stack[x]->text.textval.c_str(), color);
+                        SDL_Color color = {object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"]};
+                        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(f, string(object_stack[x]->data["textval"]).c_str(), color);
                         //SDL_DestroyTexture(ObjectStack[x].texture);
                         object_stack[x]->texture = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage);
                         SDL_FreeSurface(surfaceMessage);
@@ -140,7 +140,7 @@ bool Xrender_tick()
                         printf("Could not render text!\n");
                     }
                 }
-                if (object_stack[x]->type == "IMAGE")
+                /*if (object_stack[x]->type == "IMAGE")
                 {
                     SDL_Surface* loadedSurface = IMG_Load( object_stack[x]->image.path.c_str() );
                     if( loadedSurface == NULL )
@@ -157,35 +157,37 @@ bool Xrender_tick()
                         }
                         SDL_FreeSurface( loadedSurface );
                     }
-                }
+                }*/
             }
         }
-        if (object_stack[x]->visable == true)
+        if (object_stack[x]->data["visable"]== true)
         {
-            if (object_stack[x]->type == "LINE")
+            if (object_stack[x]->type == "line")
             {
-                thickLineRGBA(gRenderer, object_stack[x]->line.p1.x, object_stack[x]->line.p1.y, object_stack[x]->line.p2.x, object_stack[x]->line.p2.y, object_stack[x]->line.width, object_stack[x]->line.color.r, object_stack[x]->line.color.g, object_stack[x]->line.color.b, object_stack[x]->opacity);
+                //thickLineRGBA(gRenderer, object_stack[x]->line.p1.x, object_stack[x]->line.p1.y, object_stack[x]->line.p2.x, object_stack[x]->line.p2.y, object_stack[x]->line.width, object_stack[x]->line.color.r, object_stack[x]->line.color.g, object_stack[x]->line.color.b, object_stack[x]->opacity);
             }
-            else if (object_stack[x]->type == "BOX")
+            else if (object_stack[x]->type == "box")
             {
-                roundedBoxRGBA(gRenderer, object_stack[x]->box.p1.x, object_stack[x]->box.p1.y, object_stack[x]->box.p2.x, object_stack[x]->box.p2.y, object_stack[x]->box.radius, object_stack[x]->box.color.r, object_stack[x]->box.color.g, object_stack[x]->box.color.b, object_stack[x]->opacity);
+                //roundedBoxRGBA(gRenderer, object_stack[x]->box.p1.x, object_stack[x]->box.p1.y, object_stack[x]->box.p2.x, object_stack[x]->box.p2.y, object_stack[x]->box.radius, object_stack[x]->box.color.r, object_stack[x]->box.color.g, object_stack[x]->box.color.b, object_stack[x]->opacity);
             }
             else
             {
-                dst.x = object_stack[x]->position.x;
-                dst.y = object_stack[x]->position.y;
-                if (object_stack[x]->size.w > 0 && object_stack[x]->size.h > 0)
+                dst.x = object_stack[x]->data["position"]["x"];
+                dst.y = object_stack[x]->data["position"]["y"];
+                if (object_stack[x]->data["size"]["width"] > 0 && object_stack[x]->data["size"]["height"] > 0)
                 {
-                    dst.w = object_stack[x]->size.w;
-                    dst.h = object_stack[x]->size.h;
+                    dst.w = object_stack[x]->data["size"]["width"];
+                    dst.h = object_stack[x]->data["size"]["height"];
                 }
                 else
                 {
                     SDL_QueryTexture(object_stack[x]->texture, NULL, NULL, &dst.w, &dst.h);
+                    object_stack[x]->data["size"]["width"] = dst.w;
+                    object_stack[x]->data["size"]["height"] = dst.h;
                 }
                 SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
-                SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->opacity );
-                SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->angle, NULL, SDL_FLIP_NONE );
+                SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->data["color"]["a"] );
+                SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE );
             }
         }
     }

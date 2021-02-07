@@ -1,26 +1,62 @@
 #include <Xrender.h>
 
 
-Xrender_object_t *Xrender_push_text(string id_name, string textval, int font_size, Xrender_color_t color, SDL_Rect position)
+Xrender_object_t *Xrender_push_text(nlohmann::json text)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->id_name = id_name;
-    o->type = "TEXT";
-    o->zindex = 0;
-    o->visable = true;
-    o->opacity = 255;
-    o->position = position;
-    o->size.w = 0;
-    o->size.h = 0;
-    o->angle = 0;
-    o->text.textval = textval;
-    o->text.font_size = font_size;
-    o->text.color = color;
+    o->type = "text";
+    o->data = text;
+    //printf("%s\n", text.dump().c_str());
+    if (!o->data.contains("id"))
+    {
+        o->data["id"] = "none";
+    }
+    if (!o->data.contains("font"))
+    {
+        o->data["font"] = "./Sans.ttf";
+    }
+    if (!o->data.contains("zindex"))
+    {
+        o->data["zindex"] = 0;
+    }
+    if (!o->data.contains("angle"))
+    {
+        o->data["angle"] = 0;
+    }
+    if (!o->data.contains("visable"))
+    {
+        o->data["visable"] = true;
+    }
+    if (!o->data.contains("size"))
+    {
+        o->data["size"] = {
+            {"width", 0}, 
+            {"height", 0}
+        };
+    }
+    if (!o->data.contains("color"))
+    {
+        o->data["color"] = {
+            {"r", 0},
+            {"g", 0},
+            {"b", 0},
+            {"a", 255}
+        };
+    }
+    //printf("%s\n", o->data.dump().c_str());
+    if (!o->data.contains("font_size") || !o->data.contains("textval") || !o->data.contains("position"))
+    {
+        return NULL;
+    }
+    if (!o->data["position"].contains("x") || !o->data["position"].contains("y"))
+    {
+        return NULL;
+    }
     o->texture = NULL;
     object_stack.push_back(o);
     return o;
 }
-Xrender_object_t *Xrender_push_image(string id_name, string path, SDL_Rect position, int width, int height)
+/*Xrender_object_t *Xrender_push_image(string id_name, string path, SDL_Rect position, int width, int height)
 {
     Xrender_object_t *o = new Xrender_object_t;
     o->id_name = id_name;
@@ -83,9 +119,9 @@ Xrender_object_t *Xrender_push_box(string id_name, SDL_Rect p1, SDL_Rect p2, int
     o->texture = NULL;
     object_stack.push_back(o);
     return o;
-}
-void Xrender_rebuilt_object(Xrender_object_t *o)
+}*/
+void Xrender_rebuild_object(Xrender_object_t *o)
 {
-    SDL_DestroyTexture( o->texture );
+    SDL_DestroyTexture(o->texture);
     o->texture = NULL;
 }
