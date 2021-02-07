@@ -1,4 +1,5 @@
 #include "Xrender.h"
+#include "json/json.h"
 
 Xrender_object_t *text1;
 Xrender_object_t *text2;
@@ -24,15 +25,15 @@ void on_left_press()
        }   
    }
 }
-void process_dxf(dxf_object_t o, int x, int n)
+void process_dxf(nlohmann::json o, int x, int n)
 {
     int scale = 10;
     int xoffset = 200;
     int yoffset = 200;
     printf("Handling object %d of %d\n", x, n);
-    if (o.type == "line")
+    if (o["type"] == "line")
     {
-        Xrender_object_t *l = Xrender_push_line(to_string(x), {int(o.line.start.x * scale) + xoffset, int(o.line.start.y * scale) + yoffset}, {int(o.line.end.x * scale) + xoffset, int(o.line.end.y * scale) + yoffset}, 1);
+        Xrender_object_t *l = Xrender_push_line(to_string(x), {int((double)o["start"]["x"] * scale) + xoffset, int((double)o["start"]["y"] * scale) + yoffset}, {int((double)o["end"]["x"] * scale) + xoffset, int((double)o["end"]["y"] * scale) + yoffset}, 1);
         l->line.color = {255, 0 , 0};
     }
     on_left_press();

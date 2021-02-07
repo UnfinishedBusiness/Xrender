@@ -21,15 +21,13 @@
 **  along with this program; if not, write to the Free Software
 **  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#include <Xrender.h>
+
 #include <dxf/DXFParse_Class.h>
+#include <json/json.h>
 #include <iostream>
 #include <cstdlib>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
-
-
 /**
  * Default constructor.
  */
@@ -58,14 +56,16 @@ void DXFParse_Class::addPoint(const DL_PointData& data) {
  * Sample implementation of the method which handles line entities.
  */
 void DXFParse_Class::addLine(const DL_LineData& data) {
-    dxf_object_t o;
-    o.layer = current_layer;
-    o.type = "line";
-    o.line.start.x = (double)data.x1;
-    o.line.start.y = (double)data.y1;
-    o.line.end.x = (double)data.x2;
-    o.line.end.y = (double)data.y2;
-    dxf.push_back(o);
+    nlohmann::json line;
+    line["layer"] = current_layer;
+    line["type"] = "line";
+    line["start"]["x"] = (double)data.x1;
+    line["start"]["y"] = (double)data.y1;
+    line["start"]["z"] = (double)data.z1;
+    line["end"]["x"] = (double)data.x2;
+    line["end"]["y"] = (double)data.y2;
+    line["end"]["z"] = (double)data.z2;
+    dxfJSON.push_back(line);
     //printf("LINE     (%6.3f, %6.3f, %6.3f) (%6.3f, %6.3f, %6.3f)\n", data.x1, data.y1, data.z1, data.x2, data.y2, data.z2);
     //printAttributes();
 }
@@ -77,15 +77,16 @@ void DXFParse_Class::addXLine(const DL_XLineData& data)
  * Sample implementation of the method which handles arc entities.
  */
 void DXFParse_Class::addArc(const DL_ArcData& data) {
-    dxf_object_t o;
-    o.layer = current_layer;
-    o.type = "arc";
-    o.arc.center.x = (double)data.cx;
-    o.arc.center.y = (double)data.cy;
-    o.arc.start_angle = (double)data.angle1;
-    o.arc.end_angle = (double)data.angle2;
-    o.arc.radius = (double)data.radius;
-    dxf.push_back(o);
+    nlohmann::json j;
+    j["layer"] = current_layer;
+    j["type"] = "arc";
+    j["center"]["x"] = (double)data.cx;
+    j["center"]["y"] = (double)data.cy;
+    j["center"]["z"] = (double)data.cz;
+    j["start_angle"] = (double)data.angle1;
+    j["end_angle"] = (double)data.angle2;
+    j["radius"] = (double)data.radius;
+    dxfJSON.push_back(j);
     /*printf("ARC      (%6.3f, %6.3f, %6.3f) %6.3f, %6.3f, %6.3f\n",
            data.cx, data.cy, data.cz,
            data.radius, data.angle1, data.angle2);
@@ -100,13 +101,14 @@ void DXFParse_Class::addCircle(const DL_CircleData& data) {
            data.cx, data.cy, data.cz,
            data.radius);
     printAttributes();*/
-    dxf_object_t o;
-    o.layer = current_layer;
-    o.type = "circle";
-    o.circle.center.x = (double)data.cx;
-    o.circle.center.y = (double)data.cy;
-    o.circle.radius = (double)data.radius;
-    dxf.push_back(o);
+    nlohmann::json j;
+    j["layer"] = current_layer;
+    j["type"] = "circle";
+    j["center"]["x"] = (double)data.cx;
+    j["center"]["y"] = (double)data.cy;
+    j["center"]["z"] = (double)data.cz;
+    j["radius"] = (double)data.radius;
+    dxfJSON.push_back(j);
 }
 void DXFParse_Class::addEllipse(const DL_EllipseData& data)
 {

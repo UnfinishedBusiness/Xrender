@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <SDL.h>
+#include <json/json.h>
 
 using namespace std;
 
@@ -138,7 +139,7 @@ string Xrender_get_config_dir(string);
 /* End AppDirs & Environment */
 
 /* DXF File Handling */
-void Xrender_parse_dxf_file(string, void (*callback)(dxf_object_t, int, int));
+void Xrender_parse_dxf_file(string, void (*callback)(nlohmann::json, int, int));
 /* End DXF File handling */
 
 void Xrender_rebuilt_object(Xrender_object_t *o); //Flag an onbject for re-rendering

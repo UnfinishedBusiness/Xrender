@@ -25,11 +25,17 @@
 #ifndef DXFParse_Class_H
 #define DXFParse_Class_H
 
-#include <Xrender.h>
-#include <string>
 #include <dxflib/dl_creationadapter.h>
+#include <json/json.h>
+#include <Xrender.h>
 
-
+/**
+ * This class takes care of the entities read from the file.
+ * Usually such a class would probably store the entities.
+ * this one just prints some information about them to stdout.
+ *
+ * @author Andrew Mustun
+ */
 class DXFParse_Class : public DL_CreationAdapter {
 public:
     DXFParse_Class();
@@ -54,8 +60,7 @@ public:
 
     void printAttributes();
 
-
-    std::vector<dxf_object_t> dxf;
+    nlohmann::json dxfJSON;
 
     std::vector<polyline_t> polylines;
     polyline_t current_polyline;

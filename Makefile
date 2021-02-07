@@ -10,6 +10,10 @@ SRC =  ./src/Xrender.cpp $\
 		./src/dxf/DXFParse_Class.cpp $\
 		./src/Dxf.cpp $\
 		./src/dxf/Bezier.cpp $\
+		./src/geometry/clipper.cpp $\
+		./src/geometry/geometry.cpp $\
+		./src/dxf/Curve.cpp $\
+		./src/dxf/Vector.cpp $\
  
 OBJ = $(SRC:.cpp=.o)
  
@@ -22,7 +26,7 @@ INCLUDES = -I/usr/local/include -I./src/
 CCFLAGS = -g `pkg-config --cflags sdl2`
  
 # compiler
-CCC = g++ -std=c++14
+CCC = g++ -std=c++17
  
 # library paths
 LIBS = -L../ -L/usr/local/lib -lm `pkg-config --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_gfx
@@ -43,7 +47,7 @@ $(OUT): $(OBJ)
 depend: dep
  
 dep:
-	g++ -M $(CFLAGS) $(LIBS) $(CCFLAGS) $(INCLUDES) $(SRC)
+	g++ -std=c++17 -M $(CFLAGS) $(LIBS) $(CCFLAGS) $(INCLUDES) $(SRC)
  
 clean:
 	rm -f $(OBJ) $(OUT) Makefile.bak

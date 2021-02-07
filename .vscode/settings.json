@@ -63,6 +63,8 @@
         "hashtable": "cpp",
         "__tree": "cpp",
         "fstream": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "set": "cpp",
+        "valarray": "cpp"
     }
 }
