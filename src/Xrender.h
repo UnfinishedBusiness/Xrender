@@ -141,6 +141,32 @@ Xrender_object_t *Xrender_push_line(nlohmann::json line);
         box["color"]["a"] = uint8_t (0-255) alpha value
 */
 Xrender_object_t *Xrender_push_box(nlohmann::json box);
+
+/*
+    Pushes a new arc object to the render stack
+        arc["center"]["x"] = Center X !required!
+        arc["center"]["y"] = Center Y !required!
+        arc["radius"] = Radius !required!
+        arc["start_angle"] = start angle in degres !required!
+        arc["end_angle"] = end angle in degrees !required!
+        arc["color"]["r"] = uint8_t (0-255) red value
+        arc["color"]["g"] = uint8_t (0-255) blue value
+        arc["color"]["b"] = uint8_t (0-255) green value
+        arc["color"]["a"] = uint8_t (0-255) alpha value
+*/
+Xrender_object_t *Xrender_push_arc(nlohmann::json arc);
+
+/*
+    Pushes a new circle object to the render stack
+        circle["center"]["x"] = Center X !required!
+        circle["center"]["y"] = Center Y !required!
+        circle["radius"] = Radius !required!
+        circle["color"]["r"] = uint8_t (0-255) red value
+        circle["color"]["g"] = uint8_t (0-255) blue value
+        circle["color"]["b"] = uint8_t (0-255) green value
+        circle["color"]["a"] = uint8_t (0-255) alpha value
+*/
+Xrender_object_t *Xrender_push_circle(nlohmann::json circle);
 /* End Object Creation */
 
 

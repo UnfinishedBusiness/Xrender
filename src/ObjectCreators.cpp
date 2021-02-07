@@ -219,6 +219,104 @@ Xrender_object_t *Xrender_push_box(nlohmann::json box)
     object_stack.push_back(o);
     return o;
 }
+Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
+{
+    Xrender_object_t *o = new Xrender_object_t;
+    o->type = "arc";
+    o->data = arc;
+    if (!o->data.contains("id"))
+    {
+        o->data["id"] = "none";
+    }
+    if (!o->data.contains("zindex"))
+    {
+        o->data["zindex"] = 0;
+    }
+    if (!o->data.contains("angle"))
+    {
+        o->data["angle"] = 0;
+    }
+    if (!o->data.contains("visable"))
+    {
+        o->data["visable"] = true;
+    }
+    if (!o->data.contains("size"))
+    {
+        o->data["size"] = {
+            {"width", 0}, 
+            {"height", 0}
+        };
+    }
+    if (!o->data.contains("color"))
+    {
+        o->data["color"] = {
+            {"r", 0},
+            {"g", 0},
+            {"b", 0},
+            {"a", 255}
+        };
+    }
+    if (!o->data.contains("center") || !o->data.contains("start_angle") || !o->data.contains("end_angle") || !o->data.contains("radius"))
+    {
+        return NULL;
+    }
+    if (!o->data["center"].contains("x") || !o->data["center"].contains("y"))
+    {
+        return NULL;
+    }
+    o->texture = NULL;
+    object_stack.push_back(o);
+    return o;
+}
+Xrender_object_t *Xrender_push_circle(nlohmann::json circle)
+{
+    Xrender_object_t *o = new Xrender_object_t;
+    o->type = "circle";
+    o->data = circle;
+    if (!o->data.contains("id"))
+    {
+        o->data["id"] = "none";
+    }
+    if (!o->data.contains("zindex"))
+    {
+        o->data["zindex"] = 0;
+    }
+    if (!o->data.contains("angle"))
+    {
+        o->data["angle"] = 0;
+    }
+    if (!o->data.contains("visable"))
+    {
+        o->data["visable"] = true;
+    }
+    if (!o->data.contains("size"))
+    {
+        o->data["size"] = {
+            {"width", 0}, 
+            {"height", 0}
+        };
+    }
+    if (!o->data.contains("color"))
+    {
+        o->data["color"] = {
+            {"r", 0},
+            {"g", 0},
+            {"b", 0},
+            {"a", 255}
+        };
+    }
+    if (!o->data.contains("center") || !o->data.contains("radius"))
+    {
+        return NULL;
+    }
+    if (!o->data["center"].contains("x") || !o->data["center"].contains("y"))
+    {
+        return NULL;
+    }
+    o->texture = NULL;
+    object_stack.push_back(o);
+    return o;
+}
 void Xrender_rebuild_object(Xrender_object_t *o)
 {
     SDL_DestroyTexture(o->texture);

@@ -164,7 +164,22 @@ bool Xrender_tick()
         {
             if (object_stack[x]->type == "line")
             {
-                thickLineRGBA(gRenderer, object_stack[x]->data["start"]["x"], object_stack[x]->data["start"]["y"], object_stack[x]->data["end"]["x"], object_stack[x]->data["end"]["y"], object_stack[x]->data["width"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                if (object_stack[x]->data["width"] == 1)
+                {
+                    aalineRGBA(gRenderer, object_stack[x]->data["start"]["x"], object_stack[x]->data["start"]["y"], object_stack[x]->data["end"]["x"], object_stack[x]->data["end"]["y"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                }
+                else
+                {
+                    thickLineRGBA(gRenderer, object_stack[x]->data["start"]["x"], object_stack[x]->data["start"]["y"], object_stack[x]->data["end"]["x"], object_stack[x]->data["end"]["y"], object_stack[x]->data["width"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                }
+            }
+            else if (object_stack[x]->type == "arc")
+            {
+                arcRGBA(gRenderer, object_stack[x]->data["center"]["x"], object_stack[x]->data["center"]["y"], object_stack[x]->data["radius"], object_stack[x]->data["start_angle"], object_stack[x]->data["end_angle"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+            }
+            else if (object_stack[x]->type == "circle")
+            {
+                aacircleRGBA(gRenderer, object_stack[x]->data["center"]["x"], object_stack[x]->data["center"]["y"], object_stack[x]->data["radius"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
             }
             else if (object_stack[x]->type == "box")
             {

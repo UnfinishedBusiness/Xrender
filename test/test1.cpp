@@ -5,7 +5,6 @@ Xrender_object_t *box;
 
 bool test_timer()
 {
-    box->data["corner_radius"] = (int)box->data["corner_radius"] + 1;
     return true;
 }
 int main()
@@ -13,15 +12,12 @@ int main()
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
     if (Xrender_init({{"window_title", "Test1"}}))
     {
-        box = Xrender_push_box({
-            {"tl", {
-                {"x", 100},
+        box = Xrender_push_circle({
+            {"center", {
+                {"x", 450},
                 {"y", 200}
             }},
-            {"br", {
-                {"x", 300},
-                {"y", 400}
-            }},
+            {"radius", 400},
         });
         if (box == NULL)
         {
