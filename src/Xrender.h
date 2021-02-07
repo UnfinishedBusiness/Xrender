@@ -184,7 +184,13 @@ string Xrender_get_config_dir(string);
 /* End AppDirs & Environment */
 
 /* DXF File Handling */
-void Xrender_parse_dxf_file(string, void (*callback)(nlohmann::json, int, int));
+
+/*
+    Parses a DXF file and calls callback with individual entity information
+        filename = path to the dxf file
+        callback = callback defined as void cb(nlohmann::json, int, int)
+*/
+void Xrender_parse_dxf_file(string filename, void (*callback)(nlohmann::json, int, int));
 /* End DXF File handling */
 
 /* Debuging */

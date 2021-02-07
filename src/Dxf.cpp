@@ -8,13 +8,13 @@
 
 using namespace std;
 
-void Xrender_parse_dxf_file(string file, void (*callback)(nlohmann::json o, int x, int n))
+void Xrender_parse_dxf_file(string filename, void (*callback)(nlohmann::json, int, int))
 {
     Geometry g;
     DXFParse_Class* creationClass = new DXFParse_Class();
     DL_Dxf* dxf = new DL_Dxf();
-    if (!dxf->in(file, creationClass)) { // if file open failed
-        std::cerr << file << " could not be opened.\n";
+    if (!dxf->in(filename, creationClass)) { // if file open failed
+        std::cerr << filename << " could not be opened.\n";
         return;
     }
     delete dxf;
