@@ -67,6 +67,46 @@ struct Xrender_timer_t{
     unsigned long intervol;
     bool (*callback)();
 };
+
+struct dxf_point_t{
+    double x;
+    double y;
+};
+struct dxf_line_t{
+    dxf_point_t start;
+    dxf_point_t end;
+};
+struct dxf_arc_t{
+    dxf_point_t center;
+    double start_angle;
+    double end_angle;
+    double radius;
+};
+struct dxf_circle_t{
+    dxf_point_t center;
+    double radius;
+};
+struct dxf_object_t{
+    std::string layer;
+    std::string type;
+    dxf_line_t line;
+    dxf_arc_t arc;
+    dxf_circle_t circle;
+};
+
+struct polyline_vertex_t{
+    dxf_point_t point;
+    double bulge;
+};
+struct polyline_t{
+    std::vector<polyline_vertex_t> points;
+    bool isClosed;
+};
+struct spline_t{
+    std::vector<dxf_point_t> points;
+    bool isClosed;
+};
+
 extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;
 extern std::vector<Xrender_timer_t> timers;
@@ -98,7 +138,7 @@ string Xrender_get_config_dir(string);
 /* End AppDirs & Environment */
 
 /* DXF File Handling */
-void Xrender_parse_dxf_file(string);
+void Xrender_parse_dxf_file(string, void (*callback)(dxf_object_t, int, int));
 /* End DXF File handling */
 
 void Xrender_rebuilt_object(Xrender_object_t *o); //Flag an onbject for re-rendering

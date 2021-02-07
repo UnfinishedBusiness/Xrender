@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void Xrender_parse_dxf_file(string file)
+void Xrender_parse_dxf_file(string file, void (*callback)(dxf_object_t o, int x, int n))
 {
     DXFParse_Class* creationClass = new DXFParse_Class();
     DL_Dxf* dxf = new DL_Dxf();
@@ -14,15 +14,9 @@ void Xrender_parse_dxf_file(string file)
         return;
     }
     delete dxf;
-    int scale = 100;
     for (int x = 0; x < creationClass->dxf.size(); x++)
     {
-        //printf("%d = %s\n", x, creationClass->dxf[x].type.c_str());
-        if (creationClass->dxf[x].type == "line")
-        {
-            Xrender_object_t *l = Xrender_push_line(to_string(x), {int(creationClass->dxf[x].line.start.x * scale), int(creationClass->dxf[x].line.start.y * scale)}, {int(creationClass->dxf[x].line.end.x * scale), int(creationClass->dxf[x].line.end.y * scale)}, 1);
-            l->line.color = {255, 0 , 0};
-        }
+        callback(creationClass->dxf[x], x, creationClass->dxf.size());
     }
     delete creationClass;
 }

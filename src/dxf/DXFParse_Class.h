@@ -25,47 +25,10 @@
 #ifndef DXFParse_Class_H
 #define DXFParse_Class_H
 
+#include <Xrender.h>
 #include <string>
 #include <dxflib/dl_creationadapter.h>
 
-struct dxf_point_t{
-    double x;
-    double y;
-};
-struct dxf_line_t{
-    dxf_point_t start;
-    dxf_point_t end;
-};
-struct dxf_arc_t{
-    dxf_point_t center;
-    double start_angle;
-    double end_angle;
-    double radius;
-};
-struct dxf_circle_t{
-    dxf_point_t center;
-    double radius;
-};
-struct dxf_object_t{
-    std::string layer;
-    std::string type;
-    dxf_line_t line;
-    dxf_arc_t arc;
-    dxf_circle_t circle;
-};
-
-struct polyline_vertex_t{
-    dxf_point_t point;
-    double bulge;
-};
-struct polyline_t{
-    std::vector<polyline_vertex_t> points;
-    bool isClosed;
-};
-struct spline_t{
-    std::vector<dxf_point_t> points;
-    bool isClosed;
-};
 
 class DXFParse_Class : public DL_CreationAdapter {
 public:
