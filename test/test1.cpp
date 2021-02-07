@@ -2,11 +2,15 @@
 #include "json/json.h"
 
 Xrender_object_t *text1;
+Xrender_object_t *image1;
 
 bool test_timer()
 {
     text1->data["angle"] = (int)text1->data["angle"] + 1;
     Xrender_rebuild_object(text1);
+
+    image1->data["angle"] = (int)image1->data["angle"] + 1;
+    Xrender_rebuild_object(image1);
     return true;
 }
 int main()
@@ -17,6 +21,7 @@ int main()
         text1 = Xrender_push_text({
             {"textval", "This is a test"},
             {"font_size", 100},
+            {"zindex", 1},
             {"position", {
                 {"x", 100},
                 {"y", 200}
@@ -29,6 +34,22 @@ int main()
         else
         {
             printf("%s\n", text1->data.dump().c_str());
+        }
+
+        image1 = Xrender_push_image({
+            {"path", "Background.png"},
+            {"position", {
+                {"x", 0},
+                {"y", 0}
+            }},
+        });
+        if (image1 == NULL)
+        {
+            printf("Object push missing required parameters!\n");
+        }
+        else
+        {
+            printf("%s\n", image1->data.dump().c_str());
         }
         Xrender_push_timer(10, test_timer);
         while(Xrender_tick())

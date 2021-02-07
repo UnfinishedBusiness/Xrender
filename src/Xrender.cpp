@@ -111,9 +111,9 @@ bool Xrender_tick()
 {
     tick_performance_timestamp = Xrender_millis();
     SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["a"] );
-	/*sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
-        return lhs->zindex < rhs->zindex;
-    });*/
+	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
+        return lhs->data["zindex"] < rhs->data["zindex"];
+    });
     SDL_Rect dst;
     SDL_RenderClear( gRenderer );
     for (int x = 0; x < object_stack.size(); x++)
@@ -140,12 +140,12 @@ bool Xrender_tick()
                         printf("Could not render text!\n");
                     }
                 }
-                /*if (object_stack[x]->type == "IMAGE")
+                if (object_stack[x]->type == "image")
                 {
-                    SDL_Surface* loadedSurface = IMG_Load( object_stack[x]->image.path.c_str() );
+                    SDL_Surface* loadedSurface = IMG_Load(string(object_stack[x]->data["path"]).c_str());
                     if( loadedSurface == NULL )
                     {
-                        printf( "Unable to load image %s! SDL_image Error: %s\n", object_stack[x]->image.path.c_str(), IMG_GetError() );
+                        printf( "Unable to load image %s! SDL_image Error: %s\n", string(object_stack[x]->data["path"]).c_str(), IMG_GetError() );
                     }
                     else
                     {
@@ -153,11 +153,11 @@ bool Xrender_tick()
                         
                         if( object_stack[x]->texture == NULL )
                         {
-                            printf( "Unable to create texture from %s! SDL Error: %s\n", object_stack[x]->image.path.c_str(), SDL_GetError() );
+                            printf( "Unable to create texture from %s! SDL Error: %s\n", string(object_stack[x]->data["path"]).c_str(), SDL_GetError() );
                         }
                         SDL_FreeSurface( loadedSurface );
                     }
-                }*/
+                }
             }
         }
         if (object_stack[x]->data["visable"]== true)

@@ -56,24 +56,56 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
     object_stack.push_back(o);
     return o;
 }
-/*Xrender_object_t *Xrender_push_image(string id_name, string path, SDL_Rect position, int width, int height)
+Xrender_object_t *Xrender_push_image(nlohmann::json image)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->id_name = id_name;
-    o->type = "IMAGE";
-    o->zindex = 0;
-    o->visable = true;
-    o->opacity = 255;
-    o->position = position;
-    o->size.w = width;
-    o->size.h = height;
-    o->image.path = path;
-    o->angle = 0;
+    o->type = "image";
+    o->data = image;
+    if (!o->data.contains("id"))
+    {
+        o->data["id"] = "none";
+    }
+    if (!o->data.contains("zindex"))
+    {
+        o->data["zindex"] = 0;
+    }
+    if (!o->data.contains("angle"))
+    {
+        o->data["angle"] = 0;
+    }
+    if (!o->data.contains("visable"))
+    {
+        o->data["visable"] = true;
+    }
+    if (!o->data.contains("size"))
+    {
+        o->data["size"] = {
+            {"width", 0}, 
+            {"height", 0}
+        };
+    }
+    if (!o->data.contains("color"))
+    {
+        o->data["color"] = {
+            {"r", 0},
+            {"g", 0},
+            {"b", 0},
+            {"a", 255}
+        };
+    }
+    if (!o->data.contains("position") || !o->data.contains("path"))
+    {
+        return NULL;
+    }
+    if (!o->data["position"].contains("x") || !o->data["position"].contains("y"))
+    {
+        return NULL;
+    }
     o->texture = NULL;
     object_stack.push_back(o);
     return o;
 }
-Xrender_object_t *Xrender_push_line(string id_name, SDL_Rect p1, SDL_Rect p2, int width)
+/*Xrender_object_t *Xrender_push_line(string id_name, SDL_Rect p1, SDL_Rect p2, int width)
 {
     Xrender_object_t *o = new Xrender_object_t;
     o->id_name = id_name; 

@@ -104,9 +104,17 @@ void Xrender_push_key_event(Xrender_key_event_t e);
         text["color"]["a"] = uint8_t (0-255) alpha value
 */
 Xrender_object_t * Xrender_push_text(nlohmann::json text);
-//Xrender_object_t *Xrender_push_image(string, string, SDL_Rect, int, int);
-//Xrender_object_t *Xrender_push_line(string, SDL_Rect, SDL_Rect, int);
-//Xrender_object_t *Xrender_push_box(string, SDL_Rect, SDL_Rect, int);
+
+/*
+    Pushes a new image object to the render stack
+        image["path"] = std::string of image path !required!
+        image["position"]["x"] = x_position !required!
+        image["position"]["y"] = y_position !required!
+        image["color"]["a"] = uint8_t (0-255) alpha value
+*/
+Xrender_object_t *Xrender_push_image(nlohmann::json image);
+Xrender_object_t *Xrender_push_line(nlohmann::json line);
+Xrender_object_t *Xrender_push_box(nlohmann::json box);
 /* End Object Creation */
 
 
