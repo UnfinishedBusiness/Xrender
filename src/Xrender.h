@@ -127,6 +127,19 @@ Xrender_object_t *Xrender_push_image(nlohmann::json image);
         line["color"]["a"] = uint8_t (0-255) alpha value
 */
 Xrender_object_t *Xrender_push_line(nlohmann::json line);
+
+/*
+    Pushes a new box object to the render stack
+        box["tl"]["x"] = Top Left X !required!
+        box["tl"]["y"] = Top Left Y !required!
+        box["br"]["x"] = Bottom Right X !required!
+        box["br"]["y"] = Bottom Right Y !required!
+        box["corner_radius"] = Corner radius of box - defaults to 0
+        box["color"]["r"] = uint8_t (0-255) red value
+        box["color"]["g"] = uint8_t (0-255) blue value
+        box["color"]["b"] = uint8_t (0-255) green value
+        box["color"]["a"] = uint8_t (0-255) alpha value
+*/
 Xrender_object_t *Xrender_push_box(nlohmann::json box);
 /* End Object Creation */
 

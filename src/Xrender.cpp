@@ -168,7 +168,7 @@ bool Xrender_tick()
             }
             else if (object_stack[x]->type == "box")
             {
-                //roundedBoxRGBA(gRenderer, object_stack[x]->box.p1.x, object_stack[x]->box.p1.y, object_stack[x]->box.p2.x, object_stack[x]->box.p2.y, object_stack[x]->box.radius, object_stack[x]->box.color.r, object_stack[x]->box.color.g, object_stack[x]->box.color.b, object_stack[x]->opacity);
+                roundedBoxRGBA(gRenderer, object_stack[x]->data["tl"]["x"], object_stack[x]->data["tl"]["y"], object_stack[x]->data["br"]["x"], object_stack[x]->data["br"]["y"], object_stack[x]->data["corner_radius"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
             }
             else
             {
