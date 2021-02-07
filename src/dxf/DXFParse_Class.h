@@ -38,7 +38,7 @@
  */
 
 struct polyline_vertex_t{
-    dxf_point_t point;
+    double_point_t point;
     double bulge;
 };
 struct polyline_t{
@@ -46,7 +46,7 @@ struct polyline_t{
     bool isClosed;
 };
 struct spline_t{
-    std::vector<dxf_point_t> points;
+    std::vector<double_point_t> points;
     bool isClosed;
 };
 

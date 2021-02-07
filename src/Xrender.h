@@ -26,31 +26,16 @@ struct Xrender_timer_t{
     bool (*callback)();
 };
 
-struct dxf_point_t{
+struct double_point_t{
     double x;
     double y;
 };
-struct dxf_line_t{
-    dxf_point_t start;
-    dxf_point_t end;
+struct double_line_t{
+    double_point_t start;
+    double_point_t end;
 };
-struct dxf_arc_t{
-    dxf_point_t center;
-    double start_angle;
-    double end_angle;
-    double radius;
-};
-struct dxf_circle_t{
-    dxf_point_t center;
-    double radius;
-};
-struct dxf_object_t{
-    std::string layer;
-    std::string type;
-    dxf_line_t line;
-    dxf_arc_t arc;
-    dxf_circle_t circle;
-};
+
+
 extern unsigned long tick_performance;
 extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;

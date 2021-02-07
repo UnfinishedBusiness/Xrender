@@ -23,7 +23,7 @@ bool Geometry::between(double x, double min, double max)
 {
     return x >= min && x <= max;
 }
-bool Geometry::points_match(dxf_point_t p1, dxf_point_t p2)
+bool Geometry::points_match(double_point_t p1, double_point_t p2)
 {
     float tolorance = 0.001;
 	if (this->between(p1.x, p2.x - tolorance, p2.x + tolorance) && this->between(p1.y, p2.y - tolorance, p2.y + tolorance))
@@ -39,9 +39,9 @@ nlohmann::json Geometry::arc_to_line_segments(double cx, double cy, double r, do
 {
     vector<Point> pointList;
 	vector<Point> pointListOut; //List after simplification
-    dxf_point_t start;
-    dxf_point_t sweeper;
-    dxf_point_t end;
+    double_point_t start;
+    double_point_t sweeper;
+    double_point_t end;
     start.x = cx + (r * cosf((start_angle) * 3.1415926f / 180.0f));
 	start.y = cy + (r * sinf((start_angle) * 3.1415926f / 180.0f));
     end.x = cx + (r * cosf((end_angle) * 3.1415926f / 180.0f));
@@ -130,10 +130,10 @@ nlohmann::json Geometry::normalize(nlohmann::json geometry_stack)
 nlohmann::json Geometry::get_extents(nlohmann::json geometry_stack)
 {
     nlohmann::json extents;
-    dxf_point_t min;
+    double_point_t min;
     min.x = 1000000000000;
     min.y = 1000000000000;
-    dxf_point_t max;
+    double_point_t max;
     max.x = -1000000000000;
     max.y = -1000000000000;
     for (nlohmann::json::iterator it = geometry_stack.begin(); it != geometry_stack.end(); ++it)
@@ -163,9 +163,9 @@ nlohmann::json Geometry::get_extents(nlohmann::json geometry_stack)
     extents["max"]["y"] = max.y;
     return extents;
 }
-dxf_point_t Geometry::rotate_point(dxf_point_t center, dxf_point_t point, double angle)
+double_point_t Geometry::rotate_point(double_point_t center, double_point_t point, double angle)
 {
-    dxf_point_t return_point;
+    double_point_t return_point;
     double radians = (3.1415926f / 180.0f) * angle;
 	double cos = cosf(radians);
 	double sin = sinf(radians);
@@ -176,14 +176,14 @@ dxf_point_t Geometry::rotate_point(dxf_point_t center, dxf_point_t point, double
 nlohmann::json Geometry::chainify(nlohmann::json geometry_stack)
 {
     nlohmann::json contours;
-    std::vector<dxf_line_t> haystack;
+    std::vector<double_line_t> haystack;
     nlohmann::json point;
     //Make a copy of geometry stack so we're not modifying it during the chaining process!
     for (nlohmann::json::iterator it = geometry_stack.begin(); it != geometry_stack.end(); ++it)
     {
         if (it.value()["type"] == "line")
         {
-            dxf_line_t l;
+            double_line_t l;
             l.start.x = it.value()["start"]["x"];
             l.start.y = it.value()["start"]["y"];
             l.end.x = it.value()["end"]["x"];
@@ -194,9 +194,9 @@ nlohmann::json Geometry::chainify(nlohmann::json geometry_stack)
     while(haystack.size() > 0)
     {
         nlohmann::json chain;
-        dxf_point_t p1;
-        dxf_point_t p2;
-        dxf_line_t first = haystack.back();
+        double_point_t p1;
+        double_point_t p2;
+        double_line_t first = haystack.back();
         haystack.pop_back();
         point["x"] = first.start.x;
         point["y"] = first.start.y;
@@ -275,7 +275,7 @@ nlohmann::json Geometry::offset(nlohmann::json path, double offset)
     {
         //printf("Solution - %d\n", x);
         nlohmann::json path;
-        dxf_point_t first_point;
+        double_point_t first_point;
         for (int y = 0; y < solution[x].size(); y++)
         {
             if (y == 0)
@@ -369,41 +369,41 @@ void Geometry::RamerDouglasPeucker(const vector<Point> &pointList, double epsilo
 		out.push_back(pointList[end]);
 	}
 }
-double Geometry::distance(dxf_point_t p1, dxf_point_t p2)
+double Geometry::distance(double_point_t p1, double_point_t p2)
 {
     double x = p1.x - p2.x;
     double y = p1.y - p2.y;
     return sqrtf(x*x + y*y);
 }
-dxf_point_t Geometry::midpoint(dxf_point_t p1, dxf_point_t p2)
+double_point_t Geometry::midpoint(double_point_t p1, double_point_t p2)
 {
-    dxf_point_t mid;
+    double_point_t mid;
     mid.x = (p1.x+p2.x)/2;
     mid.y = (p1.y+p2.y)/2;
     return mid;
 }
-double Geometry::measure_polar_angle(dxf_point_t p1, dxf_point_t p2)
+double Geometry::measure_polar_angle(double_point_t p1, double_point_t p2)
 {
     double angle = (180 / 3.1415926f) * (atan2f(p1.y - p2.y, p1.x - p2.x));
 	angle += 180;
 	if (angle >= 360) angle -= 360;
 	return angle;
 }
-dxf_line_t Geometry::create_polar_line(dxf_point_t start_point, double angle, double length)
+double_line_t Geometry::create_polar_line(double_point_t start_point, double angle, double length)
 {
-    dxf_line_t ret;
+    double_line_t ret;
     ret.start.x = start_point.x;
     ret.start.y = start_point.y;
     ret.end.x = start_point.x + length;
     ret.end.y = start_point.y;
-    dxf_point_t rotated_endpoint = this->rotate_point(ret.start, ret.end, angle * -1);
+    double_point_t rotated_endpoint = this->rotate_point(ret.start, ret.end, angle * -1);
     ret.end.x = rotated_endpoint.x;
     ret.end.y = rotated_endpoint.y;
     return ret;
 }
-dxf_point_t Geometry::three_point_circle_center(dxf_point_t p1, dxf_point_t p2, dxf_point_t p3)
+double_point_t Geometry::three_point_circle_center(double_point_t p1, double_point_t p2, double_point_t p3)
 {
-    dxf_point_t center;
+    double_point_t center;
     double ax = (p1.x + p2.x) / 2;
     double ay = (p1.y + p2.y) / 2;
     double ux = (p1.y - p2.y);
@@ -426,14 +426,14 @@ dxf_point_t Geometry::three_point_circle_center(dxf_point_t p1, dxf_point_t p2, 
     center.y = by + g * vy;
     return center;
 }
-bool Geometry::lines_intersect(dxf_line_t l1, dxf_line_t l2)
+bool Geometry::lines_intersect(double_line_t l1, double_line_t l2)
 {
     // Store the values for fast access and easy
     // equations-to-code conversion
-    dxf_point_t p1 = l1.start;
-    dxf_point_t  p2 = l1.end;
-    dxf_point_t p3 = l2.start;
-    dxf_point_t  p4 = l2.end;
+    double_point_t p1 = l1.start;
+    double_point_t  p2 = l1.end;
+    double_point_t p3 = l2.start;
+    double_point_t  p4 = l2.end;
 
     float x1 = p1.x, x2 = p2.x, x3 = p3.x, x4 = p4.x;
     float y1 = p1.y, y2 = p2.y, y3 = p3.y, y4 = p4.y;

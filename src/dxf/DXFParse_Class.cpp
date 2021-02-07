@@ -183,7 +183,7 @@ void DXFParse_Class::addSpline(const DL_SplineData& data)
 void DXFParse_Class::addControlPoint(const DL_ControlPointData& data)
 {
     //printf("\tAdd control point!\n");
-    dxf_point_t p;
+    double_point_t p;
     p.x = data.x;
     p.y = data.y;
     current_spline.points.push_back(p);

@@ -32,7 +32,7 @@ class Geometry{
         /*
             Check if both points match
         */
-        bool points_match(dxf_point_t p1, dxf_point_t p2);
+        bool points_match(double_point_t p1, double_point_t p2);
 
         /*
             Output line segments from described arc
@@ -61,7 +61,7 @@ class Geometry{
             Rotate a point around a specified point by angle in degrees
             Returns new point with rotation applied
         */
-        dxf_point_t rotate_point(dxf_point_t center, dxf_point_t point, double angle);
+        double_point_t rotate_point(double_point_t center, double_point_t point, double angle);
 
         /*
             Chainify line segments
@@ -86,33 +86,33 @@ class Geometry{
         /*
             Get distance between two points
         */
-        double distance(dxf_point_t p1, dxf_point_t p2);
+        double distance(double_point_t p1, double_point_t p2);
 
         /*
             Get Midpoint between two points
         */
-        dxf_point_t midpoint(dxf_point_t p1, dxf_point_t p2);
+        double_point_t midpoint(double_point_t p1, double_point_t p2);
 
         /*
             Create a polar line
         */
-        dxf_line_t create_polar_line(dxf_point_t start_point, double angle, double length);
+        double_line_t create_polar_line(double_point_t start_point, double angle, double length);
 
         /*
             Calculate circle center given three points to describe the circle
         */
-        dxf_point_t three_point_circle_center(dxf_point_t p1, dxf_point_t p2, dxf_point_t p3);
+        double_point_t three_point_circle_center(double_point_t p1, double_point_t p2, double_point_t p3);
 
         /*
             Return the polar angle between two lines
         */
-        double measure_polar_angle(dxf_point_t p1, dxf_point_t p2);
+        double measure_polar_angle(double_point_t p1, double_point_t p2);
 
         /*
             Check if two lines intersect
                 returns bool
         */
-        bool lines_intersect(dxf_line_t l1, dxf_line_t l2);
+        bool lines_intersect(double_line_t l1, double_line_t l2);
 
         /*
             Check if point lies inside polygon
