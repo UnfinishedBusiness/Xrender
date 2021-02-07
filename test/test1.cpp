@@ -3,6 +3,7 @@
 
 Xrender_object_t *text1;
 Xrender_object_t *image1;
+Xrender_object_t *line1;
 
 bool test_timer()
 {
@@ -50,6 +51,25 @@ int main()
         else
         {
             printf("%s\n", image1->data.dump().c_str());
+        }
+
+        line1 = Xrender_push_line({
+            {"start", {
+                {"x", 0},
+                {"y", 0}
+            }},
+            {"end", {
+                {"x", 100},
+                {"y", 100}
+            }},
+        });
+        if (line1 == NULL)
+        {
+            printf("Object push missing required parameters!\n");
+        }
+        else
+        {
+            printf("%s\n", line1->data.dump().c_str());
         }
         Xrender_push_timer(10, test_timer);
         while(Xrender_tick())

@@ -164,7 +164,7 @@ bool Xrender_tick()
         {
             if (object_stack[x]->type == "line")
             {
-                //thickLineRGBA(gRenderer, object_stack[x]->line.p1.x, object_stack[x]->line.p1.y, object_stack[x]->line.p2.x, object_stack[x]->line.p2.y, object_stack[x]->line.width, object_stack[x]->line.color.r, object_stack[x]->line.color.g, object_stack[x]->line.color.b, object_stack[x]->opacity);
+                thickLineRGBA(gRenderer, object_stack[x]->data["start"]["x"], object_stack[x]->data["start"]["y"], object_stack[x]->data["end"]["x"], object_stack[x]->data["end"]["y"], object_stack[x]->data["width"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
             }
             else if (object_stack[x]->type == "box")
             {

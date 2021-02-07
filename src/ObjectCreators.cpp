@@ -105,32 +105,64 @@ Xrender_object_t *Xrender_push_image(nlohmann::json image)
     object_stack.push_back(o);
     return o;
 }
-/*Xrender_object_t *Xrender_push_line(string id_name, SDL_Rect p1, SDL_Rect p2, int width)
+Xrender_object_t *Xrender_push_line(nlohmann::json line)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->id_name = id_name; 
-    o->type = "LINE";
-    o->zindex = 0;
-    o->visable = true;
-    o->opacity = 255;
-    o->position.x = 0;
-    o->position.y = 0;
-    o->size.w = 0;
-    o->size.h = 0;
-    o->line.p1.x = p1.x;
-    o->line.p1.y = p1.y;
-    o->line.p2.x = p2.x;
-    o->line.p2.y = p2.y;
-    o->line.width = width;
-    o->line.color.r = 0;
-    o->line.color.g = 0;
-    o->line.color.b = 0;
-    o->angle = 0;
+    o->type = "line";
+    o->data = line;
+    if (!o->data.contains("id"))
+    {
+        o->data["id"] = "none";
+    }
+    if (!o->data.contains("zindex"))
+    {
+        o->data["zindex"] = 0;
+    }
+    if (!o->data.contains("angle"))
+    {
+        o->data["angle"] = 0;
+    }
+    if (!o->data.contains("visable"))
+    {
+        o->data["visable"] = true;
+    }
+    if (!o->data.contains("width"))
+    {
+        o->data["width"] = 1;
+    }
+    if (!o->data.contains("size"))
+    {
+        o->data["size"] = {
+            {"width", 0}, 
+            {"height", 0}
+        };
+    }
+    if (!o->data.contains("color"))
+    {
+        o->data["color"] = {
+            {"r", 0},
+            {"g", 0},
+            {"b", 0},
+            {"a", 255}
+        };
+    }
+    if (!o->data.contains("start") || !o->data.contains("end"))
+    {
+        return NULL;
+    }
+    if (!o->data["start"].contains("x") || !o->data["start"].contains("y"))
+    {
+        return NULL;
+    }
+    if (!o->data["end"].contains("x") || !o->data["end"].contains("y"))
+    {
+        return NULL;
+    }
     o->texture = NULL;
     object_stack.push_back(o);
     return o;
 }
-Xrender_object_t *Xrender_push_box(string id_name, SDL_Rect p1, SDL_Rect p2, int radius)
+/*Xrender_object_t *Xrender_push_box(string id_name, SDL_Rect p1, SDL_Rect p2, int radius)
 {
     Xrender_object_t *o = new Xrender_object_t;
     o->id_name = id_name; 

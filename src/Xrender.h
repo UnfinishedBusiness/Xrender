@@ -113,6 +113,19 @@ Xrender_object_t * Xrender_push_text(nlohmann::json text);
         image["color"]["a"] = uint8_t (0-255) alpha value
 */
 Xrender_object_t *Xrender_push_image(nlohmann::json image);
+
+/*
+    Pushes a new line object to the render stack
+        line["start"]["x"] = Start X !required!
+        line["start"]["y"] = Start Y !required!
+        line["end"]["x"] = End X !required!
+        line["end"]["y"] = End Y !required!
+        line["width"] = line width - defaults to 1
+        line["color"]["r"] = uint8_t (0-255) red value
+        line["color"]["g"] = uint8_t (0-255) blue value
+        line["color"]["b"] = uint8_t (0-255) green value
+        line["color"]["a"] = uint8_t (0-255) alpha value
+*/
 Xrender_object_t *Xrender_push_line(nlohmann::json line);
 Xrender_object_t *Xrender_push_box(nlohmann::json box);
 /* End Object Creation */
