@@ -50,10 +50,10 @@ bool Xrender_init(nlohmann::json i)
     if (!init.contains("clear_color"))
     {
         init["clear_color"] = {
-                {"r", 200},
-                {"g", 200},
-                {"b", 200},
-                {"a", 255}
+            {"r", 200},
+            {"g", 200},
+            {"b", 200},
+            {"a", 255}
         };
     }
 
@@ -203,7 +203,7 @@ bool Xrender_tick()
         }*/
         for (int x = 0; x < key_events.size(); x++)
         {
-            if (key_events.at(x).type == "KEYUP" && e.type == SDL_KEYUP)
+            if (key_events.at(x).type == "keyup" && e.type == SDL_KEYUP)
             {
                 if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
                 {
@@ -213,7 +213,7 @@ bool Xrender_tick()
                     }
                 }
             }
-            if (key_events.at(x).type == "KEYDOWN" && e.type == SDL_KEYDOWN)
+            if (key_events.at(x).type == "keydown" && e.type == SDL_KEYDOWN)
             {
                 if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
                 {

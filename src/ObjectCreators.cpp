@@ -84,3 +84,8 @@ Xrender_object_t *Xrender_push_box(string id_name, SDL_Rect p1, SDL_Rect p2, int
     object_stack.push_back(o);
     return o;
 }
+void Xrender_rebuilt_object(Xrender_object_t *o)
+{
+    SDL_DestroyTexture( o->texture );
+    o->texture = NULL;
+}

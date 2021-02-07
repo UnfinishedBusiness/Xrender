@@ -132,8 +132,20 @@ unsigned long Xrender_millis();
 bool Xrender_init(nlohmann::json i);
 
 
-bool Xrender_tick(); //Poll events and respond to them
-void Xrender_push_key_event(Xrender_key_event_t); //Push a key event to the event stack
+/*
+    The program heartbeat. Handles all events and takes care of rendering
+        returns false if quit event is handled
+*/
+bool Xrender_tick();
+
+
+/*
+    Pushes a key event to the stack
+        e.key = "X" - assci charactor
+        e.type = "keyup" or "keydown"
+        e.callback = void callback() - Function pointer that gets called uppon event
+*/
+void Xrender_push_key_event(Xrender_key_event_t e);
 
 /* Object Creation */
 Xrender_object_t * Xrender_push_text(std::string, std::string, int, Xrender_color_t, SDL_Rect);

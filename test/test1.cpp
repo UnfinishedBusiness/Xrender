@@ -97,11 +97,11 @@ int main()
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
     if (Xrender_init({{"window_title", "Test1"}}))
     {
-        Xrender_push_key_event({"A", "KEYUP", on_a_press});
-        Xrender_push_key_event({"Up", "KEYUP", on_up_press});
-        Xrender_push_key_event({"Down", "KEYUP", on_down_press});
-        Xrender_push_key_event({"Right", "KEYUP", on_right_press});
-        Xrender_push_key_event({"Left", "KEYUP", on_left_press});
+        Xrender_push_key_event({"A", "keyup", on_a_press});
+        Xrender_push_key_event({"Up", "keyup", on_up_press});
+        Xrender_push_key_event({"Down", "keyup", on_down_press});
+        Xrender_push_key_event({"Right", "keyup", on_right_press});
+        Xrender_push_key_event({"Left", "keyup", on_left_press});
 
         text1 = Xrender_push_text("test", "This is text", 30, {255, 255, 255}, {100, 100});
         text1->zindex = 10;
