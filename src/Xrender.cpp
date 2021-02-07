@@ -10,20 +10,53 @@
 #include <ctime>
 #include <algorithm> 
 #include <Xrender.h>
+#include <json/json.h>
+
+unsigned long tick_performance; //Measurement of how long the tick function is taking in ms
+unsigned long tick_performance_timestamp; //Millis timestamp of when last tick function began
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Texture* gTexture = NULL;
 SDL_Event e;
-Xrender_init_t init;
+nlohmann::json init;
 vector<Xrender_key_event_t> key_events;
 vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 
 
-bool Xrender_init(Xrender_init_t i)
+bool Xrender_init(nlohmann::json i)
 {
     init = i;
+    /*
+        Make sure init paramaters are set and if not, then default! 
+    */
+    if (!init.contains("window_title"))
+    {
+        init["window_title"] = "Xrender";
+    }
+    if (!init.contains("window_width"))
+    {
+        init["window_width"] = 900;
+    }
+    if (!init.contains("window_height"))
+    {
+        init["window_height"] = 700;
+    }
+    if (!init.contains("show_cursor"))
+    {
+        init["show_cursor"] = true;
+    }
+    if (!init.contains("clear_color"))
+    {
+        init["clear_color"] = {
+                {"r", 200},
+                {"g", 200},
+                {"b", 200},
+                {"a", 255}
+        };
+    }
+
     bool success = true;
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
@@ -38,7 +71,7 @@ bool Xrender_init(Xrender_init_t i)
 			printf( "Warning: Linear texture filtering not enabled!\n");
 		}
 		//Create window
-		gWindow = SDL_CreateWindow( init.window_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, init.window_width, init.window_height, SDL_WINDOW_SHOWN );
+		gWindow = SDL_CreateWindow( string((std::string)init["window_title"]).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)init["window_width"], (int)init["window_height"], SDL_WINDOW_SHOWN );
 		if( gWindow == NULL )
 		{
 			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -71,11 +104,13 @@ bool Xrender_init(Xrender_init_t i)
         printf("Could not initialize SDL_TTF!\n");
         success = false;
     }
+    SDL_ShowCursor((bool)init["show_cursor"]);
 	return success;
 }
 bool Xrender_tick()
 {
-    SDL_SetRenderDrawColor( gRenderer, init.clear_color.r, init.clear_color.g, init.clear_color.b, init.clear_color.a );
+    tick_performance_timestamp = Xrender_millis();
+    SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["a"] );
 	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
         return lhs->zindex < rhs->zindex;
     });
@@ -204,6 +239,7 @@ bool Xrender_tick()
             }
         }
     }
+    tick_performance = Xrender_millis() - tick_performance_timestamp;
     return true;
 }
 void Xrender_close()

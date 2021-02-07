@@ -33,7 +33,6 @@ struct Xrender_box_object_t{
     SDL_Rect p1;
     SDL_Rect p2;
     int radius;
-    void (*click_callback)();
     Xrender_color_t color;
 };
 struct Xrender_object_t{
@@ -51,6 +50,7 @@ struct Xrender_object_t{
     Xrender_image_object_t image;
     Xrender_line_object_t line;
     Xrender_box_object_t box;
+    void (*click_callback)();
 };
 struct Xrender_init_t{
     std::string window_title;
@@ -107,13 +107,31 @@ struct spline_t{
     std::vector<dxf_point_t> points;
     bool isClosed;
 };
-
+extern unsigned long tick_performance;
 extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;
 extern std::vector<Xrender_timer_t> timers;
 
+/*
+    Return an unsigned long of the number of milliseconds that have passed since the program has started
+        used for timers and for performance measuring
+*/
 unsigned long Xrender_millis();
-bool Xrender_init(Xrender_init_t); //Init the library
+
+/*
+    Init SDL window and setup the library
+        i["window_title"] = std::string of the desired window title
+        i["window_width"] = int of the desired window width
+        i["window_height"] = int of the desired window height
+        i["show_cursor"] = bool: true if you want to see cursor and false if you want it hidden
+        i["clear_color"]["r"] = uint8_t (0-255) red value
+        i["clear_color"]["g"] = uint8_t (0-255) blue value
+        i["clear_color"]["b"] = uint8_t (0-255) green value
+        i["clear_color"]["a"] = uint8_t (0-255) alpha value
+*/
+bool Xrender_init(nlohmann::json i);
+
+
 bool Xrender_tick(); //Poll events and respond to them
 void Xrender_push_key_event(Xrender_key_event_t); //Push a key event to the event stack
 
@@ -142,8 +160,14 @@ string Xrender_get_config_dir(string);
 void Xrender_parse_dxf_file(string, void (*callback)(nlohmann::json, int, int));
 /* End DXF File handling */
 
+/* Debuging */
+void Xrender_dump_object_stack(); //Debug the object stack
+unsigned long Xrender_get_performance();
+/* End Debugging */
+
 void Xrender_rebuilt_object(Xrender_object_t *o); //Flag an onbject for re-rendering
 void Xrender_close(); //Close the library
-void Xrender_dump_object_stack(); //Debug the object stack
+
+
 
 #endif

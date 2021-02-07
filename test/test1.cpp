@@ -30,7 +30,7 @@ void process_dxf(nlohmann::json o, int x, int n)
     int scale = 10;
     int xoffset = 200;
     int yoffset = 200;
-    printf("Handling object %d of %d\n", x, n);
+    //printf("Handling object %d of %d\n", x, n);
     if (o["type"] == "line")
     {
         Xrender_object_t *l = Xrender_push_line(to_string(x), {int((double)o["start"]["x"] * scale) + xoffset, int((double)o["start"]["y"] * scale) + yoffset}, {int((double)o["end"]["x"] * scale) + xoffset, int((double)o["end"]["y"] * scale) + yoffset}, 1);
@@ -58,7 +58,9 @@ void on_down_press()
     text1->angle -= 10;
     Xrender_rebuilt_object(text1);
     line1->line.p1.x += 5;
-    //Xrender_rebuilt_object(line1);
+
+    text2->text.textval = to_string(Xrender_get_performance());
+    Xrender_rebuilt_object(text2);
 }
 void on_right_press()
 {
@@ -81,7 +83,7 @@ bool test_timer()
 {
     on_down_press();
     test++;
-    if (test > 100)
+    if (test > 1000)
     {
         return false;
     }
@@ -93,7 +95,7 @@ bool test_timer()
 int main()
 {
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
-    if (Xrender_init({"Test", 900, 700, {100, 100, 100, 0}}))
+    if (Xrender_init({{"window_title", "Test1"}}))
     {
         Xrender_push_key_event({"A", "KEYUP", on_a_press});
         Xrender_push_key_event({"Up", "KEYUP", on_up_press});

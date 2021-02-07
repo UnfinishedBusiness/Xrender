@@ -43,3 +43,7 @@ void Xrender_dump_object_stack()
     }
     printf("End stack dump:\n");
 }
+unsigned long Xrender_get_performance()
+{
+    return tick_performance;
+}
