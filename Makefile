@@ -1,5 +1,15 @@
 # source files.
-SRC =  ./src/Xrender.cpp ./src/ObjectCreators.cpp ./src/EventCreators.cpp ./src/Debug.cpp ./src/Timers.cpp ./src/AppDirs.cpp ./src/dxflib/dl_dxf.cpp ./src/dxflib/dl_writer_ascii.cpp ./src/dxf/DXFParse_Class.cpp ./src/Dxf.cpp
+SRC =  ./src/Xrender.cpp $\
+		./src/ObjectCreators.cpp $\
+		./src/EventCreators.cpp $\
+		./src/Debug.cpp $\
+		./src/Timers.cpp $\
+		./src/AppDirs.cpp $\
+		./src/dxflib/dl_dxf.cpp $\
+		./src/dxflib/dl_writer_ascii.cpp $\
+		./src/dxf/DXFParse_Class.cpp $\
+		./src/Dxf.cpp $\
+		./src/dxf/Bezier.cpp $\
  
 OBJ = $(SRC:.cpp=.o)
  
