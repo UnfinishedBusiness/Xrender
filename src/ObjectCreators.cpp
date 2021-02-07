@@ -53,6 +53,7 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
         return NULL;
     }
     o->texture = NULL;
+    o->matrix_data = NULL;
     object_stack.push_back(o);
     return o;
 }
@@ -102,6 +103,7 @@ Xrender_object_t *Xrender_push_image(nlohmann::json image)
         return NULL;
     }
     o->texture = NULL;
+    o->matrix_data = NULL;
     object_stack.push_back(o);
     return o;
 }
@@ -159,6 +161,7 @@ Xrender_object_t *Xrender_push_line(nlohmann::json line)
         return NULL;
     }
     o->texture = NULL;
+    o->matrix_data = NULL;
     object_stack.push_back(o);
     return o;
 }
@@ -216,6 +219,7 @@ Xrender_object_t *Xrender_push_box(nlohmann::json box)
         return NULL;
     }
     o->texture = NULL;
+    o->matrix_data = NULL;
     object_stack.push_back(o);
     return o;
 }
@@ -265,6 +269,7 @@ Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
         return NULL;
     }
     o->texture = NULL;
+    o->matrix_data = NULL;
     object_stack.push_back(o);
     return o;
 }
@@ -314,6 +319,7 @@ Xrender_object_t *Xrender_push_circle(nlohmann::json circle)
         return NULL;
     }
     o->texture = NULL;
+    o->matrix_data = NULL;
     object_stack.push_back(o);
     return o;
 }

@@ -162,28 +162,37 @@ bool Xrender_tick()
         }
         if (object_stack[x]->data["visable"]== true)
         {
+            nlohmann::json data;
+            if (object_stack[x]->matrix_data == NULL)
+            {
+                data = object_stack[x]->data;
+            }
+            else
+            {
+                data = object_stack[x]->matrix_data(object_stack[x]->data);
+            }
             if (object_stack[x]->type == "line")
             {
                 if (object_stack[x]->data["width"] == 1)
                 {
-                    aalineRGBA(gRenderer, object_stack[x]->data["start"]["x"], object_stack[x]->data["start"]["y"], object_stack[x]->data["end"]["x"], object_stack[x]->data["end"]["y"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                    aalineRGBA(gRenderer, data["start"]["x"], data["start"]["y"], data["end"]["x"], data["end"]["y"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 }
                 else
                 {
-                    thickLineRGBA(gRenderer, object_stack[x]->data["start"]["x"], object_stack[x]->data["start"]["y"], object_stack[x]->data["end"]["x"], object_stack[x]->data["end"]["y"], object_stack[x]->data["width"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                    thickLineRGBA(gRenderer, data["start"]["x"], data["start"]["y"], data["end"]["x"], data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 }
             }
             else if (object_stack[x]->type == "arc")
             {
-                arcRGBA(gRenderer, object_stack[x]->data["center"]["x"], object_stack[x]->data["center"]["y"], object_stack[x]->data["radius"], object_stack[x]->data["start_angle"], object_stack[x]->data["end_angle"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                arcRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], data["start_angle"], data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->type == "circle")
             {
-                aacircleRGBA(gRenderer, object_stack[x]->data["center"]["x"], object_stack[x]->data["center"]["y"], object_stack[x]->data["radius"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                aacircleRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->type == "box")
             {
-                roundedBoxRGBA(gRenderer, object_stack[x]->data["tl"]["x"], object_stack[x]->data["tl"]["y"], object_stack[x]->data["br"]["x"], object_stack[x]->data["br"]["y"], object_stack[x]->data["corner_radius"], object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"], object_stack[x]->data["color"]["a"]);
+                roundedBoxRGBA(gRenderer, data["tl"]["x"], data["tl"]["y"], data["br"]["x"], data["br"]["y"], data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else
             {

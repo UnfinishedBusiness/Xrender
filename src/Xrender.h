@@ -14,6 +14,7 @@ struct Xrender_object_t{
     nlohmann::json data;
     SDL_Texture* texture;
     void (*click_callback)();
+    nlohmann::json (*matrix_data)(nlohmann::json);
 };
 struct Xrender_key_event_t{
     std::string key;
