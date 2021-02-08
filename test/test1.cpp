@@ -62,7 +62,7 @@ void minus_key()
 int main()
 {
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
-    if (Xrender_init({{"window_title", "Test1"}}))
+    if (Xrender_init({{"window_title", "Test1"}, {"clear_color", { {"r", 220}, {"g", 220}, {"b", 220}, {"a", 255}}}}))
     {
         Xrender_push_key_event({"Up", "keyup", plus_key});
         Xrender_push_key_event({"Down", "keyup", minus_key});

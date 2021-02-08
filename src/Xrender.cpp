@@ -110,7 +110,7 @@ bool Xrender_init(nlohmann::json i)
 bool Xrender_tick()
 {
     tick_performance_timestamp = Xrender_millis();
-    SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["a"] );
+    SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["b"], (uint8_t)init["clear_color"]["a"] );
 	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
         return lhs->data["zindex"] < rhs->data["zindex"];
     });
@@ -229,8 +229,15 @@ bool Xrender_tick()
         {
             printf("%s\n", SDL_GetKeyName(e.key.keysym.sym));
         }*/
+        if (e.type == SDL_MOUSEBUTTONDOWN)
+        {
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+            printf("Clicked at {%d, %d}\n", mouseX, mouseY);    
+        }
         for (int x = 0; x < key_events.size(); x++)
         {
+            
             if (key_events.at(x).type == "keyup" && e.type == SDL_KEYUP)
             {
                 if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
