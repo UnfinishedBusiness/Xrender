@@ -160,8 +160,9 @@ bool Xrender_tick()
                 }
             }
         }
-        if (object_stack[x]->data["visable"]== true)
+        if (object_stack[x]->data["visable"] == true)
         {
+            //printf("(Rendering %d) %s\n", x, object_stack[x]->data.dump().c_str());
             nlohmann::json data;
             if (object_stack[x]->matrix_data == NULL)
             {
@@ -171,6 +172,7 @@ bool Xrender_tick()
             {
                 data = object_stack[x]->matrix_data(object_stack[x]->data);
             }
+            
             if (object_stack[x]->type == "line")
             {
                 if (object_stack[x]->data["width"] == 1)

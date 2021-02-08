@@ -5,40 +5,17 @@ void Xrender_dump_object_stack()
     printf("Beginning stack dump:\n");
     for (int x = 0; x < object_stack.size(); x++)
     {
-        if (object_stack[x]->type == "TEXT")
+        if (object_stack[x]->type == "text")
         {
-            printf("[Object %d](TEXT)\n", x);
-            printf("\tid_name=%s\n", object_stack[x]->id_name.c_str());
-            printf("\tgroup_name=%s\n", object_stack[x]->group_name.c_str());
-            printf("\tzindex=%d\n", object_stack[x]->zindex);
-            printf("\tvisable=%s\n", object_stack[x]->visable ? "true" : "false");
-            printf("\topacity=%d\n", object_stack[x]->opacity);
-            printf("\tangle=%.4f\n", object_stack[x]->angle);
-            printf("\ttextval=%s\n", object_stack[x]->text.textval.c_str());
+            printf("[Object %d](text) %s\n", x, object_stack[x]->data.dump().c_str());
         }
-        if (object_stack[x]->type == "IMAGE")
+        if (object_stack[x]->type == "image")
         {
-            printf("[Object %d](IMAGE)\n", x);
-            printf("\tid_name=%s\n", object_stack[x]->id_name.c_str());
-            printf("\tgroup_name=%s\n", object_stack[x]->group_name.c_str());
-            printf("\tzindex=%d\n", object_stack[x]->zindex);
-            printf("\tvisable=%s\n", object_stack[x]->visable ? "true" : "false");
-            printf("\topacity=%d\n", object_stack[x]->opacity);
-            printf("\tangle=%.4f\n", object_stack[x]->angle);
-            printf("\tpath=%s\n", object_stack[x]->image.path.c_str());
+            printf("[Object %d](text) %s\n", x, object_stack[x]->data.dump().c_str());
         }
-        if (object_stack[x]->type == "LINE")
+        if (object_stack[x]->type == "line")
         {
-            printf("[Object %d](LINE)\n", x);
-            printf("\tid_name=%s\n", object_stack[x]->id_name.c_str());
-            printf("\tgroup_name=%s\n", object_stack[x]->group_name.c_str());
-            printf("\tzindex=%d\n", object_stack[x]->zindex);
-            printf("\tvisable=%s\n", object_stack[x]->visable ? "true" : "false");
-            printf("\topacity=%d\n", object_stack[x]->opacity);
-            printf("\tangle=%.4f\n", object_stack[x]->angle);
-            printf("\tp1=(%d, %d)\n", object_stack[x]->line.p1.x, object_stack[x]->line.p1.y);
-            printf("\tp2=(%d, %d)\n", object_stack[x]->line.p2.x, object_stack[x]->line.p2.y);
-            printf("\twidth=%d\n", object_stack[x]->line.width);
+            printf("[Object %d](text) %s\n", x, object_stack[x]->data.dump().c_str());
         }
     }
     printf("End stack dump:\n");

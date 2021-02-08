@@ -6,7 +6,6 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
     Xrender_object_t *o = new Xrender_object_t;
     o->type = "text";
     o->data = text;
-    //printf("%s\n", text.dump().c_str());
     if (!o->data.contains("id"))
     {
         o->data["id"] = "none";
@@ -43,7 +42,7 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
             {"a", 255}
         };
     }
-    //printf("%s\n", o->data.dump().c_str());
+    ////printf("%s\n", o->data.dump().c_str());
     if (!o->data.contains("font_size") || !o->data.contains("textval") || !o->data.contains("position"))
     {
         return NULL;
@@ -55,6 +54,7 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
+    //printf("(Xrender_push_text) %s\n", o->data.dump().c_str());
     return o;
 }
 Xrender_object_t *Xrender_push_image(nlohmann::json image)
@@ -105,6 +105,7 @@ Xrender_object_t *Xrender_push_image(nlohmann::json image)
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
+    //printf("(Xrender_push_image) %s\n", o->data.dump().c_str());
     return o;
 }
 Xrender_object_t *Xrender_push_line(nlohmann::json line)
@@ -163,6 +164,7 @@ Xrender_object_t *Xrender_push_line(nlohmann::json line)
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
+    //printf("(Xrender_push_line) %s\n", o->data.dump().c_str());
     return o;
 }
 Xrender_object_t *Xrender_push_box(nlohmann::json box)
@@ -221,6 +223,7 @@ Xrender_object_t *Xrender_push_box(nlohmann::json box)
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
+    //printf("(Xrender_push_box) %s\n", o->data.dump().c_str());
     return o;
 }
 Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
@@ -271,6 +274,7 @@ Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
+    //printf("(Xrender_push_arc) %s\n", o->data.dump().c_str());
     return o;
 }
 Xrender_object_t *Xrender_push_circle(nlohmann::json circle)
