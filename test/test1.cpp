@@ -49,11 +49,21 @@ void handle_dxf(nlohmann::json dxf, int x, int n)
     }
     o->matrix_data = dxf_matrix;
 }
+void plus_key()
+{
+    zoom += 1.5;
+}
+void minus_key()
+{
+    zoom -= 1.5;
+}
 int main()
 {
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
     if (Xrender_init({{"window_title", "Test1"}}))
     {
+        Xrender_push_key_event({"Up", "keyup", plus_key});
+        Xrender_push_key_event({"Down", "keyup", minus_key});
         performance_label = Xrender_push_text({
             {"textval", "0"},
             {"position", {
