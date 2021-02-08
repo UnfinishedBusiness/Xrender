@@ -14,6 +14,12 @@ SRC =  ./src/Xrender.cpp $\
 		./src/geometry/geometry.cpp $\
 		./src/dxf/Curve.cpp $\
 		./src/dxf/Vector.cpp $\
+		./src/serial/serial.cpp $\
+		./src/serial/impl/unix.cpp $\
+		./src/serial/impl/win.cpp $\
+		./src/serial/impl/list_ports/list_ports_linux.cpp $\
+		./src/serial/impl/list_ports/list_ports_osx.cpp $\
+		./src/serial/impl/list_ports/list_ports_win.cpp $\
  
 OBJ = $(SRC:.cpp=.o)
  

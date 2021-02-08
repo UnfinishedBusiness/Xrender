@@ -1,7 +1,9 @@
 #include "Xrender.h"
 #include "json/json.h"
+#include "serial/serial.h"
 
 Xrender_object_t *performance_label;
+serial::Serial serial_port;
 
 double zoom = 0.5;
 double_point_t pan = {100, 100};
@@ -74,6 +76,14 @@ int main()
         });
         Xrender_parse_dxf_file("test.dxf", handle_dxf);
         Xrender_push_timer(10, test_timer);
+
+        std::vector<serial::PortInfo> devices_found = serial::list_ports();
+        std::vector<serial::PortInfo>::iterator iter = devices_found.begin();
+        while( iter != devices_found.end() )
+        {
+            serial::PortInfo device = *iter++;
+            printf("%s - %s\n\r", device.port.c_str(), device.description.c_str());
+        }
         while(Xrender_tick())
         {
             //Running!
