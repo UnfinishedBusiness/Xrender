@@ -1,6 +1,7 @@
 #include "Xrender.h"
 #include "json/json.h"
 #include "serial/serial.h"
+#include "geometry/geometry.h"
 
 Xrender_object_t *performance_label;
 Xrender_object_t *circle;
@@ -10,6 +11,43 @@ serial::Serial serial_port;
 double zoom = 30;
 double_point_t pan = {100, 100};
 
+void mouse_callback(Xrender_object_t* o,nlohmann::json e)
+{
+    if (e["event"] == "mouse_in")
+    {
+        o->data["color"]["g"] = 255;
+    }
+    if (e["event"] == "mouse_out")
+    {
+        o->data["color"]["g"] = 0;
+    }
+    if (e["event"] == "left_click_down")
+    {
+        o->data["color"]["r"] = 255;
+    }
+    if (e["event"] == "left_click_up")
+    {
+        o->data["color"]["r"] = 0;
+    }
+    if (e["event"] == "right_click_down")
+    {
+        o->data["color"]["b"] = 255;
+    }
+    if (e["event"] == "right_click_up")
+    {
+        o->data["color"]["b"] = 0;
+    }
+    if (e["event"] == "middle_click_down")
+    {
+        o->data["color"]["b"] = 255;
+        o->data["color"]["r"] = 255;
+    }
+    if (e["event"] == "middle_click_up")
+    {
+        o->data["color"]["b"] = 0;
+        o->data["color"]["r"] = 0;
+    }
+}
 nlohmann::json dxf_matrix(nlohmann::json data)
 {
     nlohmann::json new_data = data;
@@ -53,6 +91,7 @@ void handle_dxf(nlohmann::json dxf, int x, int n)
     }
     o->data["zindex"] = 0;
     o->matrix_data = dxf_matrix;
+    o->mouse_callback = mouse_callback;
 }
 void plus_key()
 {
@@ -62,45 +101,9 @@ void minus_key()
 {
     zoom -= 1.5;
 }
-void mouse_callback(Xrender_object_t* o,nlohmann::json e)
-{
-    if (e["event"] == "mouse_in")
-    {
-        o->data["color"]["g"] = 255;
-    }
-    if (e["event"] == "mouse_out")
-    {
-        o->data["color"]["g"] = 0;
-    }
-    if (e["event"] == "left_click_down")
-    {
-        o->data["color"]["r"] = 255;
-    }
-    if (e["event"] == "left_click_up")
-    {
-        o->data["color"]["r"] = 0;
-    }
-    if (e["event"] == "right_click_down")
-    {
-        o->data["color"]["b"] = 255;
-    }
-    if (e["event"] == "right_click_up")
-    {
-        o->data["color"]["b"] = 0;
-    }
-    if (e["event"] == "middle_click_down")
-    {
-        o->data["color"]["b"] = 255;
-        o->data["color"]["r"] = 255;
-    }
-    if (e["event"] == "middle_click_up")
-    {
-        o->data["color"]["b"] = 0;
-        o->data["color"]["r"] = 0;
-    }
-}
 int main()
 {
+    Geometry g;
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
     if (Xrender_init({{"window_title", "Test1"}, {"clear_color", { {"r", 220}, {"g", 220}, {"b", 220}, {"a", 255}}}}))
     {

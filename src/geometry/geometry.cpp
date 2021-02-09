@@ -297,6 +297,60 @@ nlohmann::json Geometry::offset(nlohmann::json path, double offset)
     }
     return ret;
 }
+nlohmann::json Geometry::slot(nlohmann::json path, double offset)
+{
+    /*
+        Only supports a stack of {x: xxxx, y: xxxx} points
+    */
+    double scale = 100.0f;
+    vector<Point> pointList;
+	vector<Point> pointListOut; //List after simplification
+    for (nlohmann::json::iterator it = path.begin(); it != path.end(); ++it)
+    {
+        pointList.push_back(Point(((double)it.value()["x"]) * scale, ((double)it.value()["y"]) * scale));
+    }
+    this->RamerDouglasPeucker(pointList, 0.001 * scale, pointListOut);
+
+    
+    nlohmann::json ret;
+    ClipperLib::Path subj;
+    ClipperLib::Paths solution;
+    //printf("Path: %s, offset: %.4f\n", path.dump().c_str(), offset);
+    for (int x = 0; x < pointListOut.size(); x++)
+    {
+        subj << ClipperLib::FPoint((pointListOut[x].first), (pointListOut[x].second));
+    }
+    //ClipperLib::CleanPolygon(subj, 0.01 * scale);
+    ClipperLib::ClipperOffset co;
+    co.AddPath(subj, ClipperLib::jtRound, ClipperLib::etOpenRound);
+    co.Execute(solution, offset * scale);
+    ClipperLib::CleanPolygons(solution, 0.001 * scale);
+    for (int x = 0; x < solution.size(); x++)
+    {
+        //printf("Solution - %d\n", x);
+        nlohmann::json path;
+        double_point_t first_point;
+        for (int y = 0; y < solution[x].size(); y++)
+        {
+            if (y == 0)
+            {
+                first_point.x = double(solution[x][y].X) / scale;
+                first_point.y = double(solution[x][y].Y) / scale;
+            }
+            //printf("\t x: %.4f, y: %.4f\n", (float)(solution[x][y].X / 1000.0f), (float)(solution[x][y].Y / 1000.0f));
+            nlohmann::json point;
+            point["x"] = double(solution[x][y].X) / scale;
+            point["y"] = double(solution[x][y].Y) / scale;
+            path.push_back(point);
+        }
+        nlohmann::json point;
+        point["x"] = first_point.x;
+        point["y"] = first_point.y;
+        path.push_back(point);
+        ret.push_back(path);
+    }
+    return ret;
+}
 double Geometry::PerpendicularDistance(const Point &pt, const Point &lineStart, const Point &lineEnd)
 {
 	double dx = lineEnd.first - lineStart.first;
@@ -455,6 +509,32 @@ bool Geometry::lines_intersect(double_line_t l1, double_line_t l2)
 
     return true;
 }
+bool Geometry::line_intersects_with_arc(double_line_t l, double_point_t center, double radius)
+{
+    double r, cx, cy, ax, ay, bx, by, a,b, c, disc, t1, t2, sqrtdisc;
+    cx = center.x;
+    cy = center.y;
+    ax = l.start.x;
+    ay = l.start.y;
+    bx = l.end.x;
+    by = l.end.y;
+    r = radius;
+
+    ax -= cx;
+    ay -= cy;
+    bx -= cx;
+    by -= cy;
+    a = powf((bx - ax), 2) + pow((by - ay), 2);
+    b = 2*(ax*(bx - ax) + ay*(by - ay));
+    c = powf(ax, 2) + powf(ay, 2) - powf(r, 2);
+    disc = powf(b, 2) - 4*a*c;
+    if(disc <= 0) return false;
+    sqrtdisc = sqrtf(disc);
+    t1 = (-b + sqrtdisc)/(2*a);
+    t2 = (-b - sqrtdisc)/(2*a);
+    if((0 < t1 && t1 < 1) || (0 < t2 && t2 < 1)) return true;
+    return false;
+}
 bool Geometry::point_is_inside_polygon(nlohmann::json polygon, nlohmann::json point)
 {
     std::vector<double> polyX;
@@ -487,8 +567,8 @@ bool Geometry::pointInPolygon(int polyCorners, std::vector<double> polyX, std::v
   int j = polyCorners-1;
   bool oddNodes=false;
   for (i=0; i<polyCorners; i++) {
-    if ((polyY[i]< y && polyY[j]>=y
-    ||   polyY[j]< y && polyY[i]>=y)
+    if (((polyY[i]< y && polyY[j]>=y)
+    ||   (polyY[j]< y && polyY[i]>=y))
     &&  (polyX[i]<=x || polyX[j]<=x)) {
       oddNodes^=(polyX[i]+(y-polyY[i])/(polyY[j]-polyY[i])*(polyX[j]-polyX[i])<x); }
     j=i; }

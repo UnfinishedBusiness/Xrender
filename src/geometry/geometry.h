@@ -79,6 +79,14 @@ class Geometry{
         nlohmann::json offset(nlohmann::json path, double offset);
 
         /*
+            Slot Path
+            Inputs a list of points representing a closed contour and a distance to offset
+                negative offsets offset inside and positive offsets offset to the outside
+            Returns a list of points (polygon) with offset applied to path
+        */
+        nlohmann::json slot(nlohmann::json path, double offset);
+
+        /*
             Ramer Douglas Peucker Algorythm for simplifying points
         */
         void RamerDouglasPeucker(const std::vector<Point> &pointList, double epsilon, std::vector<Point> &out);
@@ -113,6 +121,11 @@ class Geometry{
                 returns bool
         */
         bool lines_intersect(double_line_t l1, double_line_t l2);
+
+        /*
+            Check is line intersects with arc
+        */
+       bool line_intersects_with_arc(double_line_t l, double_point_t center, double radius);
 
         /*
             Check if point lies inside polygon

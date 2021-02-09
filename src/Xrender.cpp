@@ -180,6 +180,44 @@ bool Xrender_tick()
             
             if (object_stack[x]->data["type"] == "line")
             {
+                if (g.line_intersects_with_arc({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
+                {
+                    if (object_stack[x]->data["mouse_over"] == false)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", data},
+                                {"event", "mouse_in"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                    object_stack[x]->data["mouse_over"] = true;
+                }
+                else
+                {
+                    if (object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", data},
+                                {"event", "mouse_out"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                    object_stack[x]->data["mouse_over"] = false;
+                }
                 if (object_stack[x]->data["width"] == 1)
                 {
                     aalineRGBA(gRenderer, data["start"]["x"], data["start"]["y"], data["end"]["x"], data["end"]["y"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
