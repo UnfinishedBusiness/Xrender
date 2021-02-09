@@ -10,6 +10,7 @@
 #include <ctime>
 #include <algorithm> 
 #include <Xrender.h>
+#include <geometry/geometry.h>
 #include <json/json.h>
 
 unsigned long tick_performance; //Measurement of how long the tick function is taking in ms
@@ -20,6 +21,7 @@ SDL_Renderer* gRenderer = NULL;
 SDL_Texture* gTexture = NULL;
 SDL_Event e;
 nlohmann::json init;
+
 vector<Xrender_key_event_t> key_events;
 vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
@@ -110,6 +112,9 @@ bool Xrender_init(nlohmann::json i)
 bool Xrender_tick()
 {
     tick_performance_timestamp = Xrender_millis();
+    Geometry g;
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
     SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["b"], (uint8_t)init["clear_color"]["a"] );
 	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
         return lhs->data["zindex"] < rhs->data["zindex"];
@@ -122,7 +127,7 @@ bool Xrender_tick()
         {
             if (object_stack[x]->texture == NULL) //We need to render the texture!
             {
-                if (object_stack[x]->type == "text")
+                if (object_stack[x]->data["type"] == "text")
                 {
                     //printf("Rendering Text Texture!\n");
                     TTF_Font* f = TTF_OpenFont(string(object_stack[x]->data["font"]).c_str(), object_stack[x]->data["font_size"]);
@@ -140,7 +145,7 @@ bool Xrender_tick()
                         printf("Could not render text!\n");
                     }
                 }
-                if (object_stack[x]->type == "image")
+                if (object_stack[x]->data["type"] == "image")
                 {
                     SDL_Surface* loadedSurface = IMG_Load(string(object_stack[x]->data["path"]).c_str());
                     if( loadedSurface == NULL )
@@ -173,7 +178,7 @@ bool Xrender_tick()
                 data = object_stack[x]->matrix_data(object_stack[x]->data);
             }
             
-            if (object_stack[x]->type == "line")
+            if (object_stack[x]->data["type"] == "line")
             {
                 if (object_stack[x]->data["width"] == 1)
                 {
@@ -184,16 +189,93 @@ bool Xrender_tick()
                     thickLineRGBA(gRenderer, data["start"]["x"], data["start"]["y"], data["end"]["x"], data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 }
             }
-            else if (object_stack[x]->type == "arc")
+            else if (object_stack[x]->data["type"] == "arc")
             {
-                arcRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], data["start_angle"], data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                arcRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], (float)data["start_angle"], (float)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
-            else if (object_stack[x]->type == "circle")
+            else if (object_stack[x]->data["type"] == "circle")
             {
+                if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
+                    g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5))
+                {
+                    if (object_stack[x]->data["mouse_over"] == false)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", data},
+                                {"event", "mouse_in"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                    object_stack[x]->data["mouse_over"] = true;
+                }
+                else
+                {
+                    if (object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", data},
+                                {"event", "mouse_out"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                    object_stack[x]->data["mouse_over"] = false;
+                }
                 aacircleRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
-            else if (object_stack[x]->type == "box")
+            else if (object_stack[x]->data["type"] == "box")
             {
+                if (mouseX > (int)data["tl"]["x"] && mouseX < (int)data["br"]["x"] && mouseY > (int)data["tl"]["y"] && mouseY < (int)data["br"]["y"])
+                {
+                    if (object_stack[x]->data["mouse_over"] == false)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", data},
+                                {"event", "mouse_in"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                    object_stack[x]->data["mouse_over"] = true;
+                }
+                else
+                {
+                    if (object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", data},
+                                {"event", "mouse_out"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                    object_stack[x]->data["mouse_over"] = false;
+                }
                 roundedBoxRGBA(gRenderer, data["tl"]["x"], data["tl"]["y"], data["br"]["x"], data["br"]["y"], data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else
@@ -229,11 +311,187 @@ bool Xrender_tick()
         {
             printf("%s\n", SDL_GetKeyName(e.key.keysym.sym));
         }*/
+        if(e.type == SDL_MOUSEWHEEL)
+        {
+            if(e.wheel.y > 0) // scroll up
+            {
+                // Put code for handling "scroll up" here!
+            }
+            else if(e.wheel.y < 0) // scroll down
+            {
+                // Put code for handling "scroll down" here!
+            }
+
+            if(e.wheel.x > 0) // scroll right
+            {
+                // ...
+            }
+            else if(e.wheel.x < 0) // scroll left
+            {
+                // ...
+            }
+        }
         if (e.type == SDL_MOUSEBUTTONDOWN)
         {
-            int mouseX, mouseY;
-            SDL_GetMouseState(&mouseX, &mouseY);
-            printf("Clicked at {%d, %d}\n", mouseX, mouseY);    
+            if (e.button.button == SDL_BUTTON_LEFT)
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", matrix_data},
+                                {"event", "left_click_down"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                }
+            }
+            if (e.button.button == SDL_BUTTON_RIGHT)
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", matrix_data},
+                                {"event", "right_click_down"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                }
+            }
+            if (e.button.button == SDL_BUTTON_MIDDLE)
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", matrix_data},
+                                {"event", "middle_click_down"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        if (e.type == SDL_MOUSEBUTTONUP)
+        {
+            if (e.button.button == SDL_BUTTON_LEFT)
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", matrix_data},
+                                {"event", "left_click_up"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                }
+            }
+            if (e.button.button == SDL_BUTTON_RIGHT)
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", matrix_data},
+                                {"event", "right_click_up"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                }
+            }
+            if (e.button.button == SDL_BUTTON_MIDDLE)
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            object_stack[x]->mouse_callback(object_stack[x], {
+                                {"data", object_stack[x]->data},
+                                {"matrix_data", matrix_data},
+                                {"event", "middle_click_up"},
+                                {"mouse_pos", {
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                }
+            }
         }
         for (int x = 0; x < key_events.size(); x++)
         {

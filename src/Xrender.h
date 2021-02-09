@@ -9,16 +9,9 @@
 
 using namespace std;
 
-struct Xrender_object_t{
-    std::string type;
-    nlohmann::json data;
-    SDL_Texture* texture;
-    void (*click_callback)();
-    nlohmann::json (*matrix_data)(nlohmann::json);
-};
 struct Xrender_key_event_t{
     std::string key;
-    std::string type; //KEYUP, KEYDOWN
+    std::string type; //keyup, keydown
     void (*callback)();
 };
 struct Xrender_timer_t{
@@ -26,7 +19,6 @@ struct Xrender_timer_t{
     unsigned long intervol;
     bool (*callback)();
 };
-
 struct double_point_t{
     double x;
     double y;
@@ -35,7 +27,12 @@ struct double_line_t{
     double_point_t start;
     double_point_t end;
 };
-
+struct Xrender_object_t{
+    nlohmann::json data;
+    SDL_Texture* texture;
+    void (*mouse_callback)(Xrender_object_t*, nlohmann::json);
+    nlohmann::json (*matrix_data)(nlohmann::json);
+};
 
 extern unsigned long tick_performance;
 extern std::vector<Xrender_object_t*> object_stack;

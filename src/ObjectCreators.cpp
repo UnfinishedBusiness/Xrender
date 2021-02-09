@@ -4,8 +4,8 @@
 Xrender_object_t *Xrender_push_text(nlohmann::json text)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->type = "text";
     o->data = text;
+    o->data["type"] = "text";
     if (!o->data.contains("id"))
     {
         o->data["id"] = "none";
@@ -51,6 +51,7 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
     {
         return NULL;
     }
+    o->data["mouse_over"] = false;
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
@@ -60,8 +61,8 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
 Xrender_object_t *Xrender_push_image(nlohmann::json image)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->type = "image";
     o->data = image;
+    o->data["type"] = "image";
     if (!o->data.contains("id"))
     {
         o->data["id"] = "none";
@@ -102,6 +103,7 @@ Xrender_object_t *Xrender_push_image(nlohmann::json image)
     {
         return NULL;
     }
+    o->data["mouse_over"] = false;
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
@@ -111,8 +113,8 @@ Xrender_object_t *Xrender_push_image(nlohmann::json image)
 Xrender_object_t *Xrender_push_line(nlohmann::json line)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->type = "line";
     o->data = line;
+    o->data["type"] = "line";
     if (!o->data.contains("id"))
     {
         o->data["id"] = "none";
@@ -161,6 +163,7 @@ Xrender_object_t *Xrender_push_line(nlohmann::json line)
     {
         return NULL;
     }
+    o->data["mouse_over"] = false;
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
@@ -170,8 +173,8 @@ Xrender_object_t *Xrender_push_line(nlohmann::json line)
 Xrender_object_t *Xrender_push_box(nlohmann::json box)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->type = "box";
     o->data = box;
+    o->data["type"] = "box";
     if (!o->data.contains("id"))
     {
         o->data["id"] = "none";
@@ -220,6 +223,7 @@ Xrender_object_t *Xrender_push_box(nlohmann::json box)
     {
         return NULL;
     }
+    o->data["mouse_over"] = false;
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
@@ -229,8 +233,8 @@ Xrender_object_t *Xrender_push_box(nlohmann::json box)
 Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->type = "arc";
     o->data = arc;
+    o->data["type"] = "arc";
     if (!o->data.contains("id"))
     {
         o->data["id"] = "none";
@@ -271,6 +275,7 @@ Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
     {
         return NULL;
     }
+    o->data["mouse_over"] = false;
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
@@ -280,8 +285,8 @@ Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
 Xrender_object_t *Xrender_push_circle(nlohmann::json circle)
 {
     Xrender_object_t *o = new Xrender_object_t;
-    o->type = "circle";
     o->data = circle;
+    o->data["type"] = "circle";
     if (!o->data.contains("id"))
     {
         o->data["id"] = "none";
@@ -322,6 +327,7 @@ Xrender_object_t *Xrender_push_circle(nlohmann::json circle)
     {
         return NULL;
     }
+    o->data["mouse_over"] = false;
     o->texture = NULL;
     o->matrix_data = NULL;
     object_stack.push_back(o);
