@@ -109,6 +109,44 @@ bool Xrender_init(nlohmann::json i)
     SDL_ShowCursor((bool)init["show_cursor"]);
 	return success;
 }
+void mouse_in(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int mouseY) 
+{ 
+    if (o->data["mouse_over"] == false)
+    {
+        if (o->mouse_callback != NULL)
+        {
+            o->mouse_callback(o, {
+                {"data", o->data},
+                {"matrix_data", matrix_data},
+                {"event", "mouse_in"},
+                {"mouse_pos", {
+                    {"x", mouseX},
+                    {"y", mouseY}
+                }}
+            });
+        }
+    }
+    o->data["mouse_over"] = true;
+}
+void mouse_out(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int mouseY) 
+{ 
+    if (o->data["mouse_over"] == true)
+    {
+        if (o->mouse_callback != NULL)
+        {
+            o->mouse_callback(o, {
+                {"data", o->data},
+                {"matrix_data", matrix_data},
+                {"event", "mouse_out"},
+                {"mouse_pos", {
+                    {"x", mouseX},
+                    {"y", mouseY}
+                }}
+            });
+        }
+    }
+    o->data["mouse_over"] = false;
+}
 bool Xrender_tick()
 {
     tick_performance_timestamp = Xrender_millis();
@@ -155,7 +193,6 @@ bool Xrender_tick()
                     else
                     {
                         object_stack[x]->texture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
-                        
                         if( object_stack[x]->texture == NULL )
                         {
                             printf( "Unable to create texture from %s! SDL Error: %s\n", string(object_stack[x]->data["path"]).c_str(), SDL_GetError() );
@@ -182,41 +219,11 @@ bool Xrender_tick()
             {
                 if (g.line_intersects_with_arc({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
                 {
-                    if (object_stack[x]->data["mouse_over"] == false)
-                    {
-                        if (object_stack[x]->mouse_callback != NULL)
-                        {
-                            object_stack[x]->mouse_callback(object_stack[x], {
-                                {"data", object_stack[x]->data},
-                                {"matrix_data", data},
-                                {"event", "mouse_in"},
-                                {"mouse_pos", {
-                                    {"x", mouseX},
-                                    {"y", mouseY}
-                                }}
-                            });
-                        }
-                    }
-                    object_stack[x]->data["mouse_over"] = true;
+                    mouse_in(object_stack[x], data, mouseX, mouseY);
                 }
                 else
                 {
-                    if (object_stack[x]->data["mouse_over"] == true)
-                    {
-                        if (object_stack[x]->mouse_callback != NULL)
-                        {
-                            object_stack[x]->mouse_callback(object_stack[x], {
-                                {"data", object_stack[x]->data},
-                                {"matrix_data", data},
-                                {"event", "mouse_out"},
-                                {"mouse_pos", {
-                                    {"x", mouseX},
-                                    {"y", mouseY}
-                                }}
-                            });
-                        }
-                    }
-                    object_stack[x]->data["mouse_over"] = false;
+                    mouse_out(object_stack[x], data, mouseX, mouseY);
                 }
                 if (object_stack[x]->data["width"] == 1)
                 {
@@ -229,6 +236,17 @@ bool Xrender_tick()
             }
             else if (object_stack[x]->data["type"] == "arc")
             {
+                if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
+                    g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5) &&
+                    g.measure_polar_angle({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > (double)data["start_angle"] &&
+                    g.measure_polar_angle({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < (double)data["end_angle"])
+                {
+                    mouse_in(object_stack[x], data, mouseX, mouseY);
+                }
+                else
+                {
+                    mouse_out(object_stack[x], data, mouseX, mouseY);
+                }
                 arcRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], (float)data["start_angle"], (float)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "circle")
@@ -236,41 +254,11 @@ bool Xrender_tick()
                 if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
                     g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5))
                 {
-                    if (object_stack[x]->data["mouse_over"] == false)
-                    {
-                        if (object_stack[x]->mouse_callback != NULL)
-                        {
-                            object_stack[x]->mouse_callback(object_stack[x], {
-                                {"data", object_stack[x]->data},
-                                {"matrix_data", data},
-                                {"event", "mouse_in"},
-                                {"mouse_pos", {
-                                    {"x", mouseX},
-                                    {"y", mouseY}
-                                }}
-                            });
-                        }
-                    }
-                    object_stack[x]->data["mouse_over"] = true;
+                    mouse_in(object_stack[x], data, mouseX, mouseY);
                 }
                 else
                 {
-                    if (object_stack[x]->data["mouse_over"] == true)
-                    {
-                        if (object_stack[x]->mouse_callback != NULL)
-                        {
-                            object_stack[x]->mouse_callback(object_stack[x], {
-                                {"data", object_stack[x]->data},
-                                {"matrix_data", data},
-                                {"event", "mouse_out"},
-                                {"mouse_pos", {
-                                    {"x", mouseX},
-                                    {"y", mouseY}
-                                }}
-                            });
-                        }
-                    }
-                    object_stack[x]->data["mouse_over"] = false;
+                    mouse_out(object_stack[x], data, mouseX, mouseY);
                 }
                 aacircleRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
@@ -278,41 +266,11 @@ bool Xrender_tick()
             {
                 if (mouseX > (int)data["tl"]["x"] && mouseX < (int)data["br"]["x"] && mouseY > (int)data["tl"]["y"] && mouseY < (int)data["br"]["y"])
                 {
-                    if (object_stack[x]->data["mouse_over"] == false)
-                    {
-                        if (object_stack[x]->mouse_callback != NULL)
-                        {
-                            object_stack[x]->mouse_callback(object_stack[x], {
-                                {"data", object_stack[x]->data},
-                                {"matrix_data", data},
-                                {"event", "mouse_in"},
-                                {"mouse_pos", {
-                                    {"x", mouseX},
-                                    {"y", mouseY}
-                                }}
-                            });
-                        }
-                    }
-                    object_stack[x]->data["mouse_over"] = true;
+                    mouse_in(object_stack[x], data, mouseX, mouseY);
                 }
                 else
                 {
-                    if (object_stack[x]->data["mouse_over"] == true)
-                    {
-                        if (object_stack[x]->mouse_callback != NULL)
-                        {
-                            object_stack[x]->mouse_callback(object_stack[x], {
-                                {"data", object_stack[x]->data},
-                                {"matrix_data", data},
-                                {"event", "mouse_out"},
-                                {"mouse_pos", {
-                                    {"x", mouseX},
-                                    {"y", mouseY}
-                                }}
-                            });
-                        }
-                    }
-                    object_stack[x]->data["mouse_over"] = false;
+                    mouse_out(object_stack[x], data, mouseX, mouseY);
                 }
                 roundedBoxRGBA(gRenderer, data["tl"]["x"], data["tl"]["y"], data["br"]["x"], data["br"]["y"], data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }

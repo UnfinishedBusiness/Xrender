@@ -68,7 +68,7 @@ nlohmann::json dxf_matrix(nlohmann::json data)
 }
 bool test_timer()
 {
-    performance_label->data["textval"] = to_string(Xrender_get_performance());
+    performance_label->data["textval"] = to_string(1000.0f / (float)Xrender_get_performance());
     performance_label->data["size"]["width"] = 0;
     performance_label->data["size"]["height"] = 0;
     Xrender_rebuild_object(performance_label);
@@ -129,7 +129,7 @@ int main()
         circle->matrix_data = dxf_matrix;
 
         Xrender_parse_dxf_file("test.dxf", handle_dxf);
-        Xrender_push_timer(10, test_timer);
+        Xrender_push_timer(100, test_timer);
 
         std::vector<serial::PortInfo> devices_found = serial::list_ports();
         std::vector<serial::PortInfo>::iterator iter = devices_found.begin();
