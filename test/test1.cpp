@@ -68,7 +68,6 @@ void mouse_callback(Xrender_object_t* o,nlohmann::json e)
 }
 nlohmann::json dxf_matrix(nlohmann::json data)
 {
-    Geometry g;
     nlohmann::json new_data = data;
     if (data["type"] == "line")
     {
@@ -149,6 +148,10 @@ void plus_key(nlohmann::json e)
 {
     double old_zoom = zoom;
     zoom += zoom * 0.125;
+    if (zoom > 1000000)
+    {
+        zoom = 1000000;
+    }
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange; 
@@ -157,6 +160,10 @@ void minus_key(nlohmann::json e)
 {
     double old_zoom = zoom;
     zoom += zoom * -0.125;
+    if (zoom < 0.00001)
+    {
+        zoom = 0.00001;
+    }
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange; 
@@ -214,7 +221,7 @@ int main()
         circle->mouse_callback = mouse_callback;
         circle->matrix_data = dxf_matrix;*/
 
-        Xrender_parse_dxf_file("test.dxf", handle_dxf);
+        Xrender_parse_dxf_file("test1.dxf", handle_dxf);
         Xrender_push_timer(100, test_timer);
 
         std::vector<serial::PortInfo> devices_found = serial::list_ports();

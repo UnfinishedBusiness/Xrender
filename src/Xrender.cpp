@@ -154,7 +154,8 @@ void mouse_out(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int 
 }
 void render_arc(double cx, double cy, double radius, double start_angle, double end_angle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-    if ( (((MAX(start_angle, end_angle) - MIN(start_angle, end_angle)) / 360.0f) * (2 * 3.1415926f * radius)) > 20)
+    SDL_SetRenderDrawColor(gRenderer, r, g, b, a);
+    if ( (((MAX(start_angle, end_angle) - MIN(start_angle, end_angle)) / 360.0f) * (2 * 3.1415926f * radius)) > 8)
     {
         double num_segments = 10;
         double_point_t start;
@@ -175,10 +176,12 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
             sweeper.x = cx + (radius * cosf((angle_pointer) * 3.1415926f / 180.0f));
             sweeper.y = cy + (radius * sinf((angle_pointer) * 3.1415926f / 180.0f));
             angle_pointer += angle_increment;
-            aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y, r, g, b, a);
+            //aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y, r, g, b, a);
+            SDL_RenderDrawLine(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y);
             last_point = sweeper;
         }
-        aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
+        //aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
+        SDL_RenderDrawLine(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y);
     }
     else
     {
@@ -188,7 +191,8 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
         start.y = cy + (radius * sinf((start_angle) * 3.1415926f / 180.0f));
         end.x = cx + (radius * cosf((end_angle) * 3.1415926f / 180.0f));
         end.y = cy + (radius * sinf((end_angle) * 3.1415926 / 180.0f));
-        aalineRGBA(gRenderer, start.x, (double)init["window_height"] - start.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
+        //aalineRGBA(gRenderer, start.x, (double)init["window_height"] - start.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
+        SDL_RenderDrawLine(gRenderer, start.x, (double)init["window_height"] - start.y, end.x, (double)init["window_height"] - end.y);
     }
 }
 int_point_t Xrender_get_current_mouse_position()
@@ -266,7 +270,11 @@ bool Xrender_tick()
             {
                 data = object_stack[x]->matrix_data(object_stack[x]->data);
             }
-            
+            nlohmann::json fov;
+            fov.push_back({{"x", 0}, {"y", 0}});
+            fov.push_back({{"x", (double)init["window_width"]}, {"y", 0}});
+            fov.push_back({{"x", (double)init["window_width"]}, {"y", (double)init["window_height"]}});
+            fov.push_back({{"x", 0}, {"y", (double)init["window_height"]}});
             if (object_stack[x]->data["type"] == "line")
             {
                 if (g.line_intersects_with_arc({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
@@ -279,7 +287,9 @@ bool Xrender_tick()
                 }
                 if (object_stack[x]->data["width"] == 1)
                 {
-                    aalineRGBA(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    //aalineRGBA(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    SDL_SetRenderDrawColor(gRenderer, data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    SDL_RenderDrawLine(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] - (double)data["end"]["y"]);
                 }
                 else
                 {
