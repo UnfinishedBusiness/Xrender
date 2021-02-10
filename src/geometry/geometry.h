@@ -123,6 +123,11 @@ class Geometry{
         double measure_polar_angle(double_point_t p1, double_point_t p2);
 
         /*
+            Return the circumference of an arc segment
+        */
+        //double measure_arc_circumference(double_point_t center, double start_angle, double end_angle, double radius);
+
+        /*
             Check if two lines intersect
                 returns bool
         */
