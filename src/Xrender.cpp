@@ -49,6 +49,10 @@ bool Xrender_init(nlohmann::json i)
     {
         init["show_cursor"] = true;
     }
+    if (!init.contains("maximize"))
+    {
+        init["maximize"] = false;
+    }
     if (!init.contains("clear_color"))
     {
         init["clear_color"] = {
@@ -107,6 +111,7 @@ bool Xrender_init(nlohmann::json i)
         success = false;
     }
     SDL_ShowCursor((bool)init["show_cursor"]);
+    if (init["maximize"] == true) SDL_MaximizeWindow(gWindow);
 	return success;
 }
 void mouse_in(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int mouseY) 
@@ -149,29 +154,49 @@ void mouse_out(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int 
 }
 void render_arc(double cx, double cy, double radius, double start_angle, double end_angle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-    double num_segments = 10;
-    double_point_t start;
-    double_point_t sweeper;
-    double_point_t end;
-    double_point_t last_point;
-    start.x = cx + (radius * cosf((start_angle) * 3.1415926f / 180.0f));
-    start.y = cy + (radius * sinf((start_angle) * 3.1415926f / 180.0f));
-    end.x = cx + (radius * cosf((end_angle) * 3.1415926f / 180.0f));
-    end.y = cy + (radius * sinf((end_angle) * 3.1415926 / 180.0f));
-    double diff = MAX(start_angle, end_angle) - MIN(start_angle, end_angle);
-    if (diff > 180) diff = 360 - diff;
-    double angle_increment = diff / num_segments;
-    double angle_pointer = start_angle + angle_increment;
-    last_point = start;
-    for (int i = 0; i < num_segments; i++)
+    if ( (((MAX(start_angle, end_angle) - MIN(start_angle, end_angle)) / 360.0f) * (2 * 3.1415926f * radius)) > 20)
     {
-        sweeper.x = cx + (radius * cosf((angle_pointer) * 3.1415926f / 180.0f));
-        sweeper.y = cy + (radius * sinf((angle_pointer) * 3.1415926f / 180.0f));
-        angle_pointer += angle_increment;
-        aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y, r, g, b, a);
-        last_point = sweeper;
+        double num_segments = 10;
+        double_point_t start;
+        double_point_t sweeper;
+        double_point_t end;
+        double_point_t last_point;
+        start.x = cx + (radius * cosf((start_angle) * 3.1415926f / 180.0f));
+        start.y = cy + (radius * sinf((start_angle) * 3.1415926f / 180.0f));
+        end.x = cx + (radius * cosf((end_angle) * 3.1415926f / 180.0f));
+        end.y = cy + (radius * sinf((end_angle) * 3.1415926 / 180.0f));
+        double diff = MAX(start_angle, end_angle) - MIN(start_angle, end_angle);
+        if (diff > 180) diff = 360 - diff;
+        double angle_increment = diff / num_segments;
+        double angle_pointer = start_angle + angle_increment;
+        last_point = start;
+        for (int i = 0; i < num_segments; i++)
+        {
+            sweeper.x = cx + (radius * cosf((angle_pointer) * 3.1415926f / 180.0f));
+            sweeper.y = cy + (radius * sinf((angle_pointer) * 3.1415926f / 180.0f));
+            angle_pointer += angle_increment;
+            aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y, r, g, b, a);
+            last_point = sweeper;
+        }
+        aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
     }
-    aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
+    else
+    {
+        double_point_t start;
+        double_point_t end;
+        start.x = cx + (radius * cosf((start_angle) * 3.1415926f / 180.0f));
+        start.y = cy + (radius * sinf((start_angle) * 3.1415926f / 180.0f));
+        end.x = cx + (radius * cosf((end_angle) * 3.1415926f / 180.0f));
+        end.y = cy + (radius * sinf((end_angle) * 3.1415926 / 180.0f));
+        aalineRGBA(gRenderer, start.x, (double)init["window_height"] - start.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
+    }
+}
+int_point_t Xrender_get_current_mouse_position()
+{
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+    mouseY = (int)init["window_height"] - mouseY;
+    return {mouseX, mouseY};
 }
 bool Xrender_tick()
 {
@@ -528,14 +553,13 @@ bool Xrender_tick()
         }
         for (int x = 0; x < key_events.size(); x++)
         {
-            
             if (key_events.at(x).type == "keyup" && e.type == SDL_KEYUP)
             {
                 if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
                 {
                     if (key_events.at(x).callback != NULL)
                     {
-                        key_events.at(x).callback();
+                        key_events.at(x).callback({});
                     }
                 }
             }
@@ -545,7 +569,75 @@ bool Xrender_tick()
                 {
                     if (key_events.at(x).callback != NULL)
                     {
-                        key_events.at(x).callback();
+                        key_events.at(x).callback({});
+                    }
+                }
+            }
+            if (key_events.at(x).type == "scroll" && e.type == SDL_MOUSEWHEEL)
+            {
+                if(e.wheel.y > 0) // scroll up
+                {
+                    if (key_events.at(x).key == "up")
+                    {
+                        if (key_events.at(x).callback != NULL)
+                        {
+                            key_events.at(x).callback({"scroll", e.wheel.y});
+                        }
+                    }
+                }
+                else
+                {
+                    if (key_events.at(x).key == "down")
+                    {
+                        if (key_events.at(x).callback != NULL)
+                        {
+                            key_events.at(x).callback({"scroll", e.wheel.y});
+                        }
+                    }
+                }
+            }
+            if (key_events.at(x).type == "mouse_move" && e.type == SDL_MOUSEMOTION)
+            {
+                if (key_events.at(x).callback != NULL)
+                {
+                    key_events.at(x).callback({
+                        {"pos",{
+                            {"x", mouseX},
+                            {"y", mouseY}
+                        }}
+                    });
+                }
+            }
+            if (key_events.at(x).type == "mouse_click" && e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                if (e.button.button == SDL_BUTTON_LEFT)
+                {
+                    if (key_events.at(x).key == "left")
+                    {
+                        if (key_events.at(x).callback != NULL)
+                        {
+                            key_events.at(x).callback({
+                                {"pos",{
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
+                    }
+                }
+                if (e.button.button == SDL_BUTTON_RIGHT)
+                {
+                    if (key_events.at(x).key == "right")
+                    {
+                        if (key_events.at(x).callback != NULL)
+                        {
+                            key_events.at(x).callback({
+                                {"pos",{
+                                    {"x", mouseX},
+                                    {"y", mouseY}
+                                }}
+                            });
+                        }
                     }
                 }
             }

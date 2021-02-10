@@ -10,6 +10,19 @@ serial::Serial serial_port;
 
 double zoom = 1;
 double_point_t pan = {0, 0};
+double_point_t mouse_pos_in_screen_coordinates = {0, 0};
+double_point_t mouse_pos_in_matrix_coordinates = {0, 0};
+
+void mouse_motion(nlohmann::json e)
+{
+    //printf("%s\n", e.dump().c_str());
+    mouse_pos_in_screen_coordinates = {(double)e["pos"]["x"], (double)e["pos"]["y"]};
+    mouse_pos_in_matrix_coordinates = {
+        (mouse_pos_in_screen_coordinates.x -  pan.x) / zoom,
+        (mouse_pos_in_screen_coordinates.y - pan.y) / zoom
+    };
+    //printf("Mouse pos: (%.4f, %.4f)\n", mouse_pos_in_matrix_coordinates.x, mouse_pos_in_matrix_coordinates.y);
+}
 
 void mouse_callback(Xrender_object_t* o,nlohmann::json e)
 {
@@ -132,45 +145,51 @@ void handle_dxf(nlohmann::json dxf, int x, int n)
     o->matrix_data = dxf_matrix;
     o->mouse_callback = mouse_callback;
 }
-void plus_key()
+void plus_key(nlohmann::json e)
 {
-    zoom += 1.5;
-    printf("Zoom: %.4f\n", zoom);
+    double old_zoom = zoom;
+    zoom += zoom * 0.125;
+    double scalechange = old_zoom - zoom;
+    pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
+    pan.y += mouse_pos_in_matrix_coordinates.y * scalechange; 
 }
-void minus_key()
+void minus_key(nlohmann::json e)
 {
-    zoom -= 1.5;
-    printf("Zoom: %.4f\n", zoom);
+    double old_zoom = zoom;
+    zoom += zoom * -0.125;
+    double scalechange = old_zoom - zoom;
+    pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
+    pan.y += mouse_pos_in_matrix_coordinates.y * scalechange; 
 }
-void up()
+void up(nlohmann::json e)
 {
     pan.y += 1.5;
-    printf("pan.y: %.4f\n", pan.y);
+    //printf("pan.y: %.4f\n", pan.y);
 }
-void down()
+void down(nlohmann::json e)
 {
     pan.y -= 1.5;
-    printf("pan.y: %.4f\n", pan.y);
+    //printf("pan.y: %.4f\n", pan.y);
 }
-void left()
+void left(nlohmann::json e)
 {
     pan.x -= 1.5;
-    printf("pan.x: %.4f\n", pan.x);
+    //printf("pan.x: %.4f\n", pan.x);
 }
-void right()
+void right(nlohmann::json e)
 {
     pan.x += 1.5;
-    printf("pan.x: %.4f\n", pan.x);
+    //printf("pan.x: %.4f\n", pan.x);
 }
 int main()
 {
     Geometry g;
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
-    if (Xrender_init({{"window_title", "Test1"}, {"clear_color", { {"r", 220}, {"g", 220}, {"b", 220}, {"a", 255}}}}))
+    if (Xrender_init({{"window_title", "Test1"}, {"maximize", true}, {"clear_color", { {"r", 220}, {"g", 220}, {"b", 220}, {"a", 255}}}}))
     {
-        Xrender_push_key_event({"=", "keyup", plus_key});
-        Xrender_push_key_event({"-", "keyup", minus_key});
-
+        Xrender_push_key_event({"up", "scroll", plus_key});
+        Xrender_push_key_event({"down", "scroll", minus_key});
+        Xrender_push_key_event({"none", "mouse_move", mouse_motion});
         Xrender_push_key_event({"Up", "keyup", up});
         Xrender_push_key_event({"Down", "keyup", down});
         Xrender_push_key_event({"Left", "keyup", left});

@@ -125,7 +125,7 @@ class Geometry{
         /*
             Return the circumference of an arc segment
         */
-        //double measure_arc_circumference(double_point_t center, double start_angle, double end_angle, double radius);
+        double measure_arc_circumference(double start_angle, double end_angle, double radius);
 
         /*
             Check if two lines intersect

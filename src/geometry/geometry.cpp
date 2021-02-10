@@ -459,6 +459,12 @@ double Geometry::measure_polar_angle(double_point_t p1, double_point_t p2)
 	if (angle >= 360) angle -= 360;
 	return angle;
 }
+double Geometry::measure_arc_circumference(double start_angle, double end_angle, double radius)
+{
+    double angle = MAX(start_angle, end_angle) - MIN(start_angle, end_angle);
+    double circle_circumference = 2 * 3.1415926f * radius;
+    return (angle / 360.0f) * circle_circumference;
+}
 double_line_t Geometry::create_polar_line(double_point_t start_point, double angle, double length)
 {
     double_line_t ret;

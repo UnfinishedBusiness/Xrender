@@ -11,13 +11,17 @@ using namespace std;
 
 struct Xrender_key_event_t{
     std::string key;
-    std::string type; //keyup, keydown
-    void (*callback)();
+    std::string type; //keyup, keydown, scroll, mouse_click, mouse_move
+    void (*callback)(nlohmann::json);
 };
 struct Xrender_timer_t{
     unsigned long timer;
     unsigned long intervol;
     bool (*callback)();
+};
+struct int_point_t{
+    int x;
+    int y;
 };
 struct double_point_t{
     double x;
@@ -64,6 +68,11 @@ bool Xrender_init(nlohmann::json i);
         returns false if quit event is handled
 */
 bool Xrender_tick();
+
+/*
+    Query the current mouse position
+*/
+int_point_t Xrender_get_current_mouse_position();
 
 
 /*
