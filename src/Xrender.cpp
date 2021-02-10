@@ -21,6 +21,8 @@ SDL_Renderer* gRenderer = NULL;
 SDL_Texture* gTexture = NULL;
 SDL_Event e;
 nlohmann::json init;
+int mouse_check_skip_cycles = 0;
+#define MOUSE_CHECK_CYCLE 5
 
 vector<Xrender_key_event_t> key_events;
 vector<Xrender_object_t*> object_stack;
@@ -270,20 +272,18 @@ bool Xrender_tick()
             {
                 data = object_stack[x]->matrix_data(object_stack[x]->data);
             }
-            nlohmann::json fov;
-            fov.push_back({{"x", 0}, {"y", 0}});
-            fov.push_back({{"x", (double)init["window_width"]}, {"y", 0}});
-            fov.push_back({{"x", (double)init["window_width"]}, {"y", (double)init["window_height"]}});
-            fov.push_back({{"x", 0}, {"y", (double)init["window_height"]}});
             if (object_stack[x]->data["type"] == "line")
             {
-                if (g.line_intersects_with_arc({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
+                if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    mouse_in(object_stack[x], data, mouseX, mouseY);
-                }
-                else
-                {
-                    mouse_out(object_stack[x], data, mouseX, mouseY);
+                    if (g.line_intersects_with_arc({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
+                    {
+                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                    }
+                    else
+                    {
+                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                    }
                 }
                 if (object_stack[x]->data["width"] == 1)
                 {
@@ -298,42 +298,51 @@ bool Xrender_tick()
             }
             else if (object_stack[x]->data["type"] == "arc")
             {
-                if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
+                if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
+                {
+                    if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
                     g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5) &&
                     g.measure_polar_angle({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > (double)data["start_angle"] &&
                     g.measure_polar_angle({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < (double)data["end_angle"])
-                {
-                    mouse_in(object_stack[x], data, mouseX, mouseY);
-                }
-                else
-                {
-                    mouse_out(object_stack[x], data, mouseX, mouseY);
+                    {
+                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                    }
+                    else
+                    {
+                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                    }
                 }
                 //arcRGBA(gRenderer, (double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "circle")
             {
-                if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
+                if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
+                {
+                    if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
                     g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5))
-                {
-                    mouse_in(object_stack[x], data, mouseX, mouseY);
-                }
-                else
-                {
-                    mouse_out(object_stack[x], data, mouseX, mouseY);
+                    {
+                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                    }
+                    else
+                    {
+                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                    }
                 }
                 aacircleRGBA(gRenderer, (double)data["center"]["x"], (double)init["window_height"] - (double)data["center"]["y"], (double)data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "box")
             {
-                if (mouseX > (int)data["tl"]["x"] && mouseX < (int)data["br"]["x"] && mouseY > (int)data["tl"]["y"] && mouseY < (int)data["br"]["y"])
+                if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    mouse_in(object_stack[x], data, mouseX, mouseY);
-                }
-                else
-                {
-                    mouse_out(object_stack[x], data, mouseX, mouseY);
+                    if (mouseX > (int)data["tl"]["x"] && mouseX < (int)data["br"]["x"] && mouseY > (int)data["tl"]["y"] && mouseY < (int)data["br"]["y"])
+                    {
+                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                    }
+                    else
+                    {
+                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                    }
                 }
                 roundedBoxRGBA(gRenderer, (double)data["tl"]["x"], (double)init["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)init["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
@@ -360,6 +369,11 @@ bool Xrender_tick()
         }
     }
     SDL_RenderPresent( gRenderer );
+    if (mouse_check_skip_cycles > MOUSE_CHECK_CYCLE)
+    {
+        mouse_check_skip_cycles = 0;
+    }
+    mouse_check_skip_cycles++;
 	while ( SDL_PollEvent( &e ) != 0 )
 	{
 		//User requests quit
