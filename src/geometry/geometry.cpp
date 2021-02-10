@@ -173,6 +173,22 @@ double_point_t Geometry::rotate_point(double_point_t center, double_point_t poin
 	return_point.y = (cos * (point.y - center.y)) - (sin * (point.x - center.x)) + center.y;
     return return_point;
 }
+double_point_t Geometry::mirror_point(double_point_t point, double_line_t line)
+{
+    double dx, dy, a, b, x, y;
+    double_point_t p, p0, p1;
+    p = point;
+    p0 = line.start;
+    p1 = line.end;
+
+    dx = p1.x - p0.x;
+    dy = p1.y - p0.y;
+    a = (dx * dx - dy * dy) / (dx * dx + dy * dy);
+    b = 2 * dx * dy / (dx * dx + dy * dy);
+    x = a * (p.x - p0.x) + b * (p.y - p0.y) + p0.x;
+    y = b * (p.x - p0.x) - a * (p.y - p0.y) + p0.y;
+    return { x, y };
+}
 nlohmann::json Geometry::chainify(nlohmann::json geometry_stack)
 {
     nlohmann::json contours;

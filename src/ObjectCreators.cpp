@@ -251,6 +251,10 @@ Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
     {
         o->data["visable"] = true;
     }
+    if (!o->data.contains("width"))
+    {
+        o->data["width"] = 1;
+    }
     if (!o->data.contains("size"))
     {
         o->data["size"] = {

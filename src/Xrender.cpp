@@ -147,12 +147,39 @@ void mouse_out(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int 
     }
     o->data["mouse_over"] = false;
 }
+void render_arc(double cx, double cy, double radius, double start_angle, double end_angle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+    double num_segments = 10;
+    double_point_t start;
+    double_point_t sweeper;
+    double_point_t end;
+    double_point_t last_point;
+    start.x = cx + (radius * cosf((start_angle) * 3.1415926f / 180.0f));
+    start.y = cy + (radius * sinf((start_angle) * 3.1415926f / 180.0f));
+    end.x = cx + (radius * cosf((end_angle) * 3.1415926f / 180.0f));
+    end.y = cy + (radius * sinf((end_angle) * 3.1415926 / 180.0f));
+    double diff = MAX(start_angle, end_angle) - MIN(start_angle, end_angle);
+    if (diff > 180) diff = 360 - diff;
+    double angle_increment = diff / num_segments;
+    double angle_pointer = start_angle + angle_increment;
+    last_point = start;
+    for (int i = 0; i < num_segments; i++)
+    {
+        sweeper.x = cx + (radius * cosf((angle_pointer) * 3.1415926f / 180.0f));
+        sweeper.y = cy + (radius * sinf((angle_pointer) * 3.1415926f / 180.0f));
+        angle_pointer += angle_increment;
+        aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y, r, g, b, a);
+        last_point = sweeper;
+    }
+    aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
+}
 bool Xrender_tick()
 {
     tick_performance_timestamp = Xrender_millis();
     Geometry g;
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
+    mouseY = (int)init["window_height"] - mouseY;
     SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["b"], (uint8_t)init["clear_color"]["a"] );
 	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
         return lhs->data["zindex"] < rhs->data["zindex"];
@@ -227,11 +254,11 @@ bool Xrender_tick()
                 }
                 if (object_stack[x]->data["width"] == 1)
                 {
-                    aalineRGBA(gRenderer, data["start"]["x"], data["start"]["y"], data["end"]["x"], data["end"]["y"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    aalineRGBA(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 }
                 else
                 {
-                    thickLineRGBA(gRenderer, data["start"]["x"], data["start"]["y"], data["end"]["x"], data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    thickLineRGBA(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] -  (double)data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 }
             }
             else if (object_stack[x]->data["type"] == "arc")
@@ -247,7 +274,8 @@ bool Xrender_tick()
                 {
                     mouse_out(object_stack[x], data, mouseX, mouseY);
                 }
-                arcRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], (float)data["start_angle"], (float)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                //arcRGBA(gRenderer, (double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "circle")
             {
@@ -260,7 +288,7 @@ bool Xrender_tick()
                 {
                     mouse_out(object_stack[x], data, mouseX, mouseY);
                 }
-                aacircleRGBA(gRenderer, data["center"]["x"], data["center"]["y"], data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                aacircleRGBA(gRenderer, (double)data["center"]["x"], (double)init["window_height"] - (double)data["center"]["y"], (double)data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "box")
             {
@@ -272,12 +300,12 @@ bool Xrender_tick()
                 {
                     mouse_out(object_stack[x], data, mouseX, mouseY);
                 }
-                roundedBoxRGBA(gRenderer, data["tl"]["x"], data["tl"]["y"], data["br"]["x"], data["br"]["y"], data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                roundedBoxRGBA(gRenderer, (double)data["tl"]["x"], (double)init["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)init["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else
             {
                 dst.x = object_stack[x]->data["position"]["x"];
-                dst.y = object_stack[x]->data["position"]["y"];
+                dst.y = (int)init["window_height"] - (int)object_stack[x]->data["position"]["y"];
                 if (object_stack[x]->data["size"]["width"] > 0 && object_stack[x]->data["size"]["height"] > 0)
                 {
                     dst.w = object_stack[x]->data["size"]["width"];
@@ -289,9 +317,10 @@ bool Xrender_tick()
                     object_stack[x]->data["size"]["width"] = dst.w;
                     object_stack[x]->data["size"]["height"] = dst.h;
                 }
+                dst.y -= (int)object_stack[x]->data["size"]["height"];
                 SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
                 SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->data["color"]["a"] );
-                SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE);
             }
         }
     }

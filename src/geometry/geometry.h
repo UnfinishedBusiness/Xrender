@@ -64,6 +64,12 @@ class Geometry{
         double_point_t rotate_point(double_point_t center, double_point_t point, double angle);
 
         /*
+            Mirror a point about a line
+            Returns new point with mirror applied
+        */
+        double_point_t mirror_point(double_point_t point, double_line_t line);
+
+        /*
             Chainify line segments
             Inputs a "normalized" (meaning only line segments) stack of entities and vectors them aka chaining
             Returns an array of contours

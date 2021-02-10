@@ -8,11 +8,12 @@ Xrender_object_t *circle;
 
 serial::Serial serial_port;
 
-double zoom = 30;
-double_point_t pan = {100, 100};
+double zoom = 1;
+double_point_t pan = {0, 0};
 
 void mouse_callback(Xrender_object_t* o,nlohmann::json e)
 {
+    Geometry g;
     if (e["event"] == "mouse_in")
     {
         o->data["color"]["g"] = 255;
@@ -24,6 +25,10 @@ void mouse_callback(Xrender_object_t* o,nlohmann::json e)
     if (e["event"] == "left_click_down")
     {
         o->data["color"]["r"] = 255;
+        if (o->data["type"] == "line")
+        {
+            printf("Angle: %.4f\n", g.measure_polar_angle({(double)o->data["start"]["x"], (double)o->data["start"]["y"]}, {(double)o->data["end"]["x"], (double)o->data["end"]["y"]}));
+        }
     }
     if (e["event"] == "left_click_up")
     {
@@ -50,6 +55,7 @@ void mouse_callback(Xrender_object_t* o,nlohmann::json e)
 }
 nlohmann::json dxf_matrix(nlohmann::json data)
 {
+    Geometry g;
     nlohmann::json new_data = data;
     if (data["type"] == "line")
     {
@@ -61,8 +67,8 @@ nlohmann::json dxf_matrix(nlohmann::json data)
     if (data["type"] == "arc" || data["type"] == "circle")
     {
         new_data["center"]["x"] = ((double)data["center"]["x"] * zoom) + pan.x;
-        new_data["center"]["y"] = ((double)data["center"]["y"] * zoom) + pan.y;
-        new_data["radius"] = (double)data["radius"] * zoom;
+        new_data["center"]["y"] = ((double)data["center"]["y"]* zoom) + pan.y;
+        new_data["radius"] = ((double)data["radius"] * zoom);
     }
     return new_data;
 }
@@ -76,6 +82,7 @@ bool test_timer()
 }
 void handle_dxf(nlohmann::json dxf, int x, int n)
 {
+    Geometry g;
     Xrender_object_t *o;
     if (dxf["type"] == "line")
     {
@@ -84,6 +91,38 @@ void handle_dxf(nlohmann::json dxf, int x, int n)
     if (dxf["type"] == "arc")
     {
         o = Xrender_push_arc(dxf);
+        /*double_line_t start_line = g.create_polar_line({o->data["center"]["x"], o->data["center"]["y"]}, o->data["start_angle"], o->data["radius"]);
+        double_line_t end_line = g.create_polar_line({o->data["center"]["x"], o->data["center"]["y"]}, o->data["end_angle"], o->data["radius"]);
+        circle = Xrender_push_circle({
+            {"center", {
+                {"x", start_line.end.x},
+                {"y", start_line.end.y}
+            }},
+            {"color", {
+                {"r", 0},
+                {"g", 255},
+                {"b", 0}, 
+                {"a", 255}
+            }},
+            {"radius", 10}
+        });
+        circle->matrix_data = dxf_matrix;
+        circle->mouse_callback = NULL;
+        circle = Xrender_push_circle({
+            {"center", {
+                {"x", end_line.end.x},
+                {"y", end_line.end.y}
+            }},
+            {"color", {
+                {"r", 255},
+                {"g", 0},
+                {"b", 0}, 
+                {"a", 255}
+            }},
+            {"radius", 10}
+        });
+        circle->matrix_data = dxf_matrix;
+        circle->mouse_callback = NULL;*/
     }
     if (dxf["type"] == "circle")
     {
@@ -96,10 +135,32 @@ void handle_dxf(nlohmann::json dxf, int x, int n)
 void plus_key()
 {
     zoom += 1.5;
+    printf("Zoom: %.4f\n", zoom);
 }
 void minus_key()
 {
     zoom -= 1.5;
+    printf("Zoom: %.4f\n", zoom);
+}
+void up()
+{
+    pan.y += 1.5;
+    printf("pan.y: %.4f\n", pan.y);
+}
+void down()
+{
+    pan.y -= 1.5;
+    printf("pan.y: %.4f\n", pan.y);
+}
+void left()
+{
+    pan.x -= 1.5;
+    printf("pan.x: %.4f\n", pan.x);
+}
+void right()
+{
+    pan.x += 1.5;
+    printf("pan.x: %.4f\n", pan.x);
 }
 int main()
 {
@@ -107,8 +168,14 @@ int main()
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
     if (Xrender_init({{"window_title", "Test1"}, {"clear_color", { {"r", 220}, {"g", 220}, {"b", 220}, {"a", 255}}}}))
     {
-        Xrender_push_key_event({"Up", "keyup", plus_key});
-        Xrender_push_key_event({"Down", "keyup", minus_key});
+        Xrender_push_key_event({"=", "keyup", plus_key});
+        Xrender_push_key_event({"-", "keyup", minus_key});
+
+        Xrender_push_key_event({"Up", "keyup", up});
+        Xrender_push_key_event({"Down", "keyup", down});
+        Xrender_push_key_event({"Left", "keyup", left});
+        Xrender_push_key_event({"Right", "keyup", right});
+
         performance_label = Xrender_push_text({
             {"textval", "0"},
             {"position", {
@@ -118,7 +185,7 @@ int main()
             {"font_size", 20}
         });
 
-        circle = Xrender_push_circle({
+        /*circle = Xrender_push_circle({
             {"center", {
                 {"x", 5},
                 {"y", 5}
@@ -126,7 +193,7 @@ int main()
             {"radius", 10}
         });
         circle->mouse_callback = mouse_callback;
-        circle->matrix_data = dxf_matrix;
+        circle->matrix_data = dxf_matrix;*/
 
         Xrender_parse_dxf_file("test.dxf", handle_dxf);
         Xrender_push_timer(100, test_timer);
