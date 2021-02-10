@@ -73,7 +73,7 @@ bool Xrender_init(nlohmann::json i)
 			printf( "Warning: Linear texture filtering not enabled!\n");
 		}
 		//Create window
-		gWindow = SDL_CreateWindow( string((std::string)init["window_title"]).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)init["window_width"], (int)init["window_height"], SDL_WINDOW_SHOWN );
+		gWindow = SDL_CreateWindow( string((std::string)init["window_title"]).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)init["window_width"], (int)init["window_height"], SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 		if( gWindow == NULL )
 		{
 			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -331,6 +331,14 @@ bool Xrender_tick()
 		if ( e.type == SDL_QUIT )
 		{
 			return false;
+		}
+        if ( e.type == SDL_WINDOWEVENT )
+		{
+			if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+            {
+                init["window_width"] =  (int)e.window.data1;
+                init["window_height"] =  (int)e.window.data2;
+            }
 		}
         /*if (e.type == SDL_KEYUP)
         {
