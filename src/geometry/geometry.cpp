@@ -546,7 +546,7 @@ bool Geometry::line_intersects_with_arc(double_line_t l, double_point_t center, 
     ay -= cy;
     bx -= cx;
     by -= cy;
-    a = powf((bx - ax), 2) + pow((by - ay), 2);
+    a = powf((bx - ax), 2) + powf((by - ay), 2);
     b = 2*(ax*(bx - ax) + ay*(by - ay));
     c = powf(ax, 2) + powf(ay, 2) - powf(r, 2);
     disc = powf(b, 2) - 4*a*c;
