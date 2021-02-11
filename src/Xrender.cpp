@@ -15,6 +15,7 @@
 #include <gui/imgui.h>
 #include <gui/imgui_sdl.h>
 #include <gui/imgui_impl_sdl.h>
+#include <fonts/Sans.ttf.h>
 
 unsigned long tick_performance; //Measurement of how long the tick function is taking in ms
 unsigned long tick_performance_timestamp; //Millis timestamp of when last tick function began
@@ -250,8 +251,15 @@ bool Xrender_tick()
             {
                 if (object_stack[x]->data["type"] == "text")
                 {
-                    //printf("Rendering Text Texture!\n");
-                    TTF_Font* f = TTF_OpenFont(string(object_stack[x]->data["font"]).c_str(), object_stack[x]->data["font_size"]);
+                    TTF_Font* f;
+                    if (object_stack[x]->data["font"] == "default")
+                    {
+                        f = TTF_OpenFontRW(SDL_RWFromConstMem(Sans_ttf,sizeof(Sans_ttf)), 1, object_stack[x]->data["font_size"]);
+                    }
+                    else
+                    {
+                        f = TTF_OpenFont(string(object_stack[x]->data["font"]).c_str(), object_stack[x]->data["font_size"]);
+                    }
                     if (f)
                     {
                         SDL_Color color = {object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"]};

@@ -10,10 +10,6 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
     {
         o->data["id"] = "none";
     }
-    if (!o->data.contains("font"))
-    {
-        o->data["font"] = "./Sans.ttf";
-    }
     if (!o->data.contains("zindex"))
     {
         o->data["zindex"] = 0;
@@ -25,6 +21,10 @@ Xrender_object_t *Xrender_push_text(nlohmann::json text)
     if (!o->data.contains("visable"))
     {
         o->data["visable"] = true;
+    }
+    if (!o->data.contains("font"))
+    {
+        o->data["font"] = "default";
     }
     if (!o->data.contains("size"))
     {
