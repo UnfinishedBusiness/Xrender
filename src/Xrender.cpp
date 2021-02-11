@@ -276,7 +276,7 @@ bool Xrender_tick()
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    if (g.line_intersects_with_arc({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
+                    if (g.line_intersects_with_circle({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
                     {
                         mouse_in(object_stack[x], data, mouseX, mouseY);
                     }
@@ -302,8 +302,7 @@ bool Xrender_tick()
                 {
                     if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
                     g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5) &&
-                    g.measure_polar_angle({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > (double)data["start_angle"] &&
-                    g.measure_polar_angle({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < (double)data["end_angle"])
+                    g.lines_intersect({g.create_polar_line({(double)data["center"]["x"], (double)data["center"]["y"]}, (double)data["start_angle"], (double)data["radius"]).end, g.create_polar_line({(double)data["center"]["x"], (double)data["center"]["y"]}, (double)data["end_angle"], (double)data["radius"]).end}, {{(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}}))
                     {
                         mouse_in(object_stack[x], data, mouseX, mouseY);
                     }
@@ -311,6 +310,7 @@ bool Xrender_tick()
                     {
                         mouse_out(object_stack[x], data, mouseX, mouseY);
                     }
+                    //printf("start_angle: %.4f, end_angle: %.4f\n", (double)data["start_angle"], (double)data["end_angle"]);
                 }
                 //arcRGBA(gRenderer, (double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);

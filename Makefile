@@ -20,6 +20,9 @@ SRC =  ./src/Xrender.cpp $\
 		./src/serial/impl/list_ports/list_ports_linux.cpp $\
 		./src/serial/impl/list_ports/list_ports_osx.cpp $\
 		./src/serial/impl/list_ports/list_ports_win.cpp $\
+		./src/gui/imgui_impl_sdl.cpp $\
+		./src/gui/imgui.cpp $\
+		./src/gui/imgui_sdl.cpp $\
  
 OBJ = $(SRC:.cpp=.o)
  

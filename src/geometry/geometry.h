@@ -134,9 +134,9 @@ class Geometry{
         bool lines_intersect(double_line_t l1, double_line_t l2);
 
         /*
-            Check is line intersects with arc
+            Check is line intersects with circle
         */
-       bool line_intersects_with_arc(double_line_t l, double_point_t center, double radius);
+       bool line_intersects_with_circle(double_line_t l, double_point_t center, double radius);
 
         /*
             Check if point lies inside polygon

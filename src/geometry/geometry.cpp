@@ -531,7 +531,7 @@ bool Geometry::lines_intersect(double_line_t l1, double_line_t l2)
 
     return true;
 }
-bool Geometry::line_intersects_with_arc(double_line_t l, double_point_t center, double radius)
+bool Geometry::line_intersects_with_circle(double_line_t l, double_point_t center, double radius)
 {
     double r, cx, cy, ax, ay, bx, by, a,b, c, disc, t1, t2, sqrtdisc;
     cx = center.x;
