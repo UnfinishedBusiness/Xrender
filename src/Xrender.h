@@ -14,6 +14,10 @@ struct Xrender_key_event_t{
     std::string type; //keyup, keydown, scroll, mouse_click, mouse_move
     void (*callback)(nlohmann::json);
 };
+struct Xrender_gui_t{
+    bool visable;
+    void (*callback)();
+};
 struct Xrender_timer_t{
     unsigned long timer;
     unsigned long intervol;
@@ -42,6 +46,7 @@ extern unsigned long tick_performance;
 extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;
 extern std::vector<Xrender_timer_t> timers;
+extern std::vector<Xrender_gui_t*> gui_stack;
 
 /*
     Return an unsigned long of the number of milliseconds that have passed since the program has started
@@ -165,6 +170,10 @@ Xrender_object_t *Xrender_push_circle(nlohmann::json circle);
 /* Object Manipulation */
 void Xrender_set_property(std::string, std::string, std::string);
 /* End Object Manipulation */
+
+/* GUI */
+Xrender_gui_t *Xrender_push_gui(bool visable, void (*callback)());
+/* End GUI */
 
 /* Timers */
 void Xrender_push_timer(unsigned long, bool (*)());

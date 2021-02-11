@@ -2,7 +2,9 @@
 #include "json/json.h"
 #include "serial/serial.h"
 #include "geometry/geometry.h"
+#include "gui/imgui.h"
 
+Xrender_gui_t *test_window;
 Xrender_object_t *performance_label;
 Xrender_object_t *circle;
 
@@ -188,6 +190,32 @@ void right(nlohmann::json e)
     pan.x += 1.5;
     //printf("pan.x: %.4f\n", pan.x);
 }
+void _test_window()
+{
+    ImGui::Begin("My First Tool", &test_window->visable, ImGuiWindowFlags_MenuBar);
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
+            if (ImGui::MenuItem("Save", "Ctrl+S"))   { /* Do stuff */ }
+            if (ImGui::MenuItem("Close", "Ctrl+W"))  { test_window->visable = false; }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
+    }
+    // Plot some values
+    const float my_values[] = { 0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f };
+    ImGui::PlotLines("Frame Times", my_values, IM_ARRAYSIZE(my_values));
+
+    // Display contents in a scrolling region
+    ImGui::TextColored(ImVec4(1,1,0,1), "Important Stuff");
+    ImGui::BeginChild("Scrolling");
+    for (int n = 0; n < 50; n++)
+        ImGui::Text("%04d: Some text", n);
+    ImGui::EndChild();
+    ImGui::End();
+}
 int main()
 {
     Geometry g;
@@ -223,6 +251,8 @@ int main()
 
         Xrender_parse_dxf_file("test1.dxf", handle_dxf);
         Xrender_push_timer(100, test_timer);
+
+        test_window = Xrender_push_gui(true, _test_window);
 
         std::vector<serial::PortInfo> devices_found = serial::list_ports();
         std::vector<serial::PortInfo>::iterator iter = devices_found.begin();

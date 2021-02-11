@@ -30,6 +30,7 @@ int mouse_check_skip_cycles = 0;
 vector<Xrender_key_event_t> key_events;
 vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
+vector<Xrender_gui_t*> gui_stack;
 
 
 bool Xrender_init(nlohmann::json i)
@@ -60,11 +61,11 @@ bool Xrender_init(nlohmann::json i)
     }
     if (!init.contains("ini_file_name"))
     {
-        init["ini_file_name"] = string(init["window_title"]) + ".ini";
+        init["ini_file_name"] = "gui.ini";
     }
     if (!init.contains("log_file_name"))
     {
-        init["log_file_name"] = string(init["window_title"]) + ".log";
+        init["log_file_name"] = "gui.log";
     }
     if (!init.contains("gui_style"))
     {
@@ -398,8 +399,14 @@ bool Xrender_tick()
     ImGui::NewFrame();
     ImGui_ImplSDL2_NewFrame(gWindow);
 
-	ImGui::ShowDemoWindow();
-
+	//ImGui::ShowDemoWindow();
+    for (int x = 0; x < gui_stack.size(); x++)
+    {
+        if (gui_stack[x]->visable == true)
+        {
+            gui_stack[x]->callback();
+        }
+    }
     /*
         Render ImGUI content
     */
@@ -747,4 +754,13 @@ void Xrender_close()
 	gWindow = NULL;
 	IMG_Quit();
 	SDL_Quit();
+}
+
+Xrender_gui_t *Xrender_push_gui(bool visable, void (*callback)())
+{
+    Xrender_gui_t *g = new Xrender_gui_t;
+    g->visable = visable;
+    g->callback = callback;
+    gui_stack.push_back(g);
+    return g;
 }
