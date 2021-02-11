@@ -22,6 +22,10 @@ SRC =  ./src/Xrender.cpp $\
 		./src/serial/impl/list_ports/list_ports_win.cpp $\
 		./src/gui/imgui_impl_sdl.cpp $\
 		./src/gui/imgui.cpp $\
+		./src/gui/imgui_tables.cpp $\
+		./src/gui/imgui_widgets.cpp $\
+		./src/gui/imgui_draw.cpp $\
+		./src/gui/imgui_demo.cpp $\
 		./src/gui/imgui_sdl.cpp $\
  
 OBJ = $(SRC:.cpp=.o)
