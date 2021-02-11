@@ -28,6 +28,7 @@ SRC =  ./src/Xrender.cpp $\
 		./src/gui/imgui_demo.cpp $\
 		./src/gui/imgui_sdl.cpp $\
 		./src/gui/ImGuiFileDialog.cpp $\
+		./src/gui/TextEditor.cpp $\
  
 OBJ = $(SRC:.cpp=.o)
  
