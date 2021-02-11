@@ -3,6 +3,7 @@
 #include "serial/serial.h"
 #include "geometry/geometry.h"
 #include "gui/imgui.h"
+#include "gui/ImGuiFileDialog.h"
 
 static float progress = 0.0f;
 Xrender_gui_t *menu_bar;
@@ -33,15 +34,18 @@ void mouse_callback(Xrender_object_t* o,nlohmann::json e)
     Geometry g;
     if (e["event"] == "mouse_in")
     {
+        o->data["color"]["r"] = 0;
         o->data["color"]["g"] = 255;
+        o->data["color"]["b"] = 0;
     }
     if (e["event"] == "mouse_out")
     {
-        o->data["color"]["g"] = 0;
+        o->data["color"]["r"] = 255;
+        o->data["color"]["g"] = 255;
+        o->data["color"]["b"] = 255;
     }
     if (e["event"] == "left_click_down")
     {
-        o->data["color"]["r"] = 255;
         if (o->data["type"] == "line")
         {
             printf("Angle: %.4f\n", g.measure_polar_angle({(double)o->data["start"]["x"], (double)o->data["start"]["y"]}, {(double)o->data["end"]["x"], (double)o->data["end"]["y"]}));
@@ -49,25 +53,23 @@ void mouse_callback(Xrender_object_t* o,nlohmann::json e)
     }
     if (e["event"] == "left_click_up")
     {
-        o->data["color"]["r"] = 0;
+
     }
     if (e["event"] == "right_click_down")
     {
-        o->data["color"]["b"] = 255;
+
     }
     if (e["event"] == "right_click_up")
     {
-        o->data["color"]["b"] = 0;
+
     }
     if (e["event"] == "middle_click_down")
     {
-        o->data["color"]["b"] = 255;
-        o->data["color"]["r"] = 255;
+
     }
     if (e["event"] == "middle_click_up")
     {
-        o->data["color"]["b"] = 0;
-        o->data["color"]["r"] = 0;
+
     }
 }
 nlohmann::json dxf_matrix(nlohmann::json data)
@@ -107,47 +109,20 @@ void handle_dxf(nlohmann::json dxf, int x, int n)
     if (dxf["type"] == "arc")
     {
         o = Xrender_push_arc(dxf);
-        /*double_line_t start_line = g.create_polar_line({o->data["center"]["x"], o->data["center"]["y"]}, o->data["start_angle"], o->data["radius"]);
-        double_line_t end_line = g.create_polar_line({o->data["center"]["x"], o->data["center"]["y"]}, o->data["end_angle"], o->data["radius"]);
-        circle = Xrender_push_circle({
-            {"center", {
-                {"x", start_line.end.x},
-                {"y", start_line.end.y}
-            }},
-            {"color", {
-                {"r", 0},
-                {"g", 255},
-                {"b", 0}, 
-                {"a", 255}
-            }},
-            {"radius", 10}
-        });
-        circle->matrix_data = dxf_matrix;
-        circle->mouse_callback = NULL;
-        circle = Xrender_push_circle({
-            {"center", {
-                {"x", end_line.end.x},
-                {"y", end_line.end.y}
-            }},
-            {"color", {
-                {"r", 255},
-                {"g", 0},
-                {"b", 0}, 
-                {"a", 255}
-            }},
-            {"radius", 10}
-        });
-        circle->matrix_data = dxf_matrix;
-        circle->mouse_callback = NULL;*/
     }
     if (dxf["type"] == "circle")
     {
         o = Xrender_push_circle(dxf);
     }
+    o->data["color"] = {
+        {"r", 255},
+        {"g", 255},
+        {"b", 255},
+        {"a", 255}
+    };
     o->data["zindex"] = 0;
     o->matrix_data = dxf_matrix;
     o->mouse_callback = mouse_callback;
-    progress = ((float)x / (float)n);
 }
 void plus_key(nlohmann::json e)
 {
@@ -195,14 +170,26 @@ void right(nlohmann::json e)
 }
 void _menu_bar()
 {
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(500, 500))) 
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            printf("File Path: %s\n", filePathName.c_str());
+            Xrender_parse_dxf_file(filePathName, handle_dxf);
+                    // action
+        }
+                    // close
+        ImGuiFileDialog::Instance()->Close();
+    }
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
             if (ImGui::MenuItem("Open", "CTRL+O"))
             {
-                progress = 0.0f;
-                Xrender_parse_dxf_file("test.dxf", handle_dxf);
+                ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".dxf", ".");
             }
             if (ImGui::MenuItem("Close", "")) {}
             ImGui::EndMenu();
@@ -222,7 +209,8 @@ void _menu_bar()
 }
 void _progress_window()
 {
-    ImGui::Begin("Progress", &progress_window->visable, ImGuiWindowFlags_MenuBar);
+    ImGui::SetNextWindowSize(ImVec2(550, 60), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Progress", &progress_window->visable, 0);
     ImGui::ProgressBar(progress, ImVec2(0.0f, 0.0f));
     ImGui::End();
 }
@@ -230,7 +218,7 @@ int main()
 {
     Geometry g;
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
-    if (Xrender_init({{"window_title", "Test1"}, {"maximize", true}, {"clear_color", { {"r", 220}, {"g", 220}, {"b", 220}, {"a", 255}}}}))
+    if (Xrender_init({{"window_title", "Test1"}, {"maximize", true}, {"clear_color", { {"r", 0}, {"g", 51}, {"b", 102}, {"a", 255}}}}))
     {
         Xrender_push_key_event({"up", "scroll", plus_key});
         Xrender_push_key_event({"down", "scroll", minus_key});
@@ -249,7 +237,7 @@ int main()
             {"font_size", 20}
         });
 
-        circle = Xrender_push_circle({
+        /*circle = Xrender_push_circle({
             {"center", {
                 {"x", 5},
                 {"y", 5}
@@ -257,13 +245,13 @@ int main()
             {"radius", 10}
         });
         circle->mouse_callback = mouse_callback;
-        circle->matrix_data = dxf_matrix;
+        circle->matrix_data = dxf_matrix;*/
 
         Xrender_push_timer(100, test_timer);
 
         menu_bar = Xrender_push_gui(true, _menu_bar);
 
-        progress_window = Xrender_push_gui(true, _progress_window);
+        progress_window = Xrender_push_gui(false, _progress_window);
 
         
 
