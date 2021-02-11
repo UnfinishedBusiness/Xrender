@@ -211,7 +211,7 @@ int main()
             {"font_size", 20}
         });
 
-        /*circle = Xrender_push_circle({
+        circle = Xrender_push_circle({
             {"center", {
                 {"x", 5},
                 {"y", 5}
@@ -219,7 +219,7 @@ int main()
             {"radius", 10}
         });
         circle->mouse_callback = mouse_callback;
-        circle->matrix_data = dxf_matrix;*/
+        circle->matrix_data = dxf_matrix;
 
         Xrender_parse_dxf_file("test1.dxf", handle_dxf);
         Xrender_push_timer(100, test_timer);

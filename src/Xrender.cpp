@@ -117,7 +117,7 @@ bool Xrender_init(nlohmann::json i)
 	return success;
 }
 void mouse_in(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int mouseY) 
-{ 
+{
     if (o->data["mouse_over"] == false)
     {
         if (o->mouse_callback != NULL)
