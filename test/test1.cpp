@@ -4,7 +4,9 @@
 #include "geometry/geometry.h"
 #include "gui/imgui.h"
 
-Xrender_gui_t *test_window;
+static float progress = 0.0f;
+Xrender_gui_t *menu_bar;
+Xrender_gui_t *progress_window;
 Xrender_object_t *performance_label;
 Xrender_object_t *circle;
 
@@ -145,6 +147,7 @@ void handle_dxf(nlohmann::json dxf, int x, int n)
     o->data["zindex"] = 0;
     o->matrix_data = dxf_matrix;
     o->mouse_callback = mouse_callback;
+    progress = ((float)x / (float)n);
 }
 void plus_key(nlohmann::json e)
 {
@@ -190,30 +193,37 @@ void right(nlohmann::json e)
     pan.x += 1.5;
     //printf("pan.x: %.4f\n", pan.x);
 }
-void _test_window()
+void _menu_bar()
 {
-    ImGui::Begin("My First Tool", &test_window->visable, ImGuiWindowFlags_MenuBar);
-    if (ImGui::BeginMenuBar())
+    if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
-            if (ImGui::MenuItem("Save", "Ctrl+S"))   { /* Do stuff */ }
-            if (ImGui::MenuItem("Close", "Ctrl+W"))  { test_window->visable = false; }
+            if (ImGui::MenuItem("Open", "CTRL+O"))
+            {
+                progress = 0.0f;
+                Xrender_parse_dxf_file("test.dxf", handle_dxf);
+            }
+            if (ImGui::MenuItem("Close", "")) {}
             ImGui::EndMenu();
         }
-        ImGui::EndMenuBar();
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
     }
-    // Plot some values
-    const float my_values[] = { 0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f };
-    ImGui::PlotLines("Frame Times", my_values, IM_ARRAYSIZE(my_values));
-
-    // Display contents in a scrolling region
-    ImGui::TextColored(ImVec4(1,1,0,1), "Important Stuff");
-    ImGui::BeginChild("Scrolling");
-    for (int n = 0; n < 50; n++)
-        ImGui::Text("%04d: Some text", n);
-    ImGui::EndChild();
+}
+void _progress_window()
+{
+    ImGui::Begin("Progress", &progress_window->visable, ImGuiWindowFlags_MenuBar);
+    ImGui::ProgressBar(progress, ImVec2(0.0f, 0.0f));
     ImGui::End();
 }
 int main()
@@ -249,10 +259,13 @@ int main()
         circle->mouse_callback = mouse_callback;
         circle->matrix_data = dxf_matrix;
 
-        Xrender_parse_dxf_file("test1.dxf", handle_dxf);
         Xrender_push_timer(100, test_timer);
 
-        test_window = Xrender_push_gui(true, _test_window);
+        menu_bar = Xrender_push_gui(true, _menu_bar);
+
+        progress_window = Xrender_push_gui(true, _progress_window);
+
+        
 
         std::vector<serial::PortInfo> devices_found = serial::list_ports();
         std::vector<serial::PortInfo>::iterator iter = devices_found.begin();
