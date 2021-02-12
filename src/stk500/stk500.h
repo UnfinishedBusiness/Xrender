@@ -74,7 +74,11 @@
 #define STK_328P_POLL_INDEX      0x03
 #define STK_328P_POLL_VALUE      0x53
 
+#define STK_MEMTYPE_FLASH        'F'
 
+#define PAGE_SIZE_WORDS 64
+#define BYTES_PER_WORD 2
+#define BYTES_PER_FLASH_BLOCK (PAGE_SIZE_WORDS * BYTES_PER_WORD)
 
 bool stk500_write_program(const char *intelhex, const char *port);
 

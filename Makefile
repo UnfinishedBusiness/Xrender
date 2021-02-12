@@ -30,10 +30,7 @@ SRC =   ./src/Xrender.cpp $\
 		./src/gui/ImGuiFileDialog.cpp $\
 		./src/gui/TextEditor.cpp $\
 		./src/stk500/stk500.cpp $\
-		./src/hex/IntelHexFile.cpp $\
-		./src/hex/IntelHexFileEntry.cpp $\
-		./src/hex/Program.cpp $\
-		./src/hex/ProgramPage.cpp $\
+		./src/hex/hex.cpp $\
 		
 OBJ = $(SRC:.cpp=.o)
  
