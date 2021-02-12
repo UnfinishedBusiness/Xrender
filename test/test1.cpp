@@ -5,6 +5,7 @@
 #include "gui/imgui.h"
 #include "gui/ImGuiFileDialog.h"
 #include "gui/TextEditor.h"
+#include "stk500/stk500.h"
 
 TextEditor editor;
 static float progress = 0.0f;
@@ -194,6 +195,10 @@ void _menu_bar()
             {
                 ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".dxf", ".");
             }
+            if (ImGui::MenuItem("Update", ""))
+            {
+                stk500_write_program("firmware.hex", "/dev/cu.usbmodemFA121");
+            }
             if (ImGui::MenuItem("Close", "")) {}
             ImGui::EndMenu();
         }
@@ -345,7 +350,7 @@ int main()
 
         progress_window = Xrender_push_gui(false, _progress_window);
 
-        editor_window = Xrender_push_gui(true, _editor_window);
+        editor_window = Xrender_push_gui(false, _editor_window);
 
         std::vector<serial::PortInfo> devices_found = serial::list_ports();
         std::vector<serial::PortInfo>::iterator iter = devices_found.begin();

@@ -1,5 +1,5 @@
 # source files.
-SRC =  ./src/Xrender.cpp $\
+SRC =   ./src/Xrender.cpp $\
 		./src/ObjectCreators.cpp $\
 		./src/EventCreators.cpp $\
 		./src/Debug.cpp $\
@@ -29,7 +29,12 @@ SRC =  ./src/Xrender.cpp $\
 		./src/gui/imgui_sdl.cpp $\
 		./src/gui/ImGuiFileDialog.cpp $\
 		./src/gui/TextEditor.cpp $\
- 
+		./src/stk500/stk500.cpp $\
+		./src/hex/IntelHexFile.cpp $\
+		./src/hex/IntelHexFileEntry.cpp $\
+		./src/hex/Program.cpp $\
+		./src/hex/ProgramPage.cpp $\
+		
 OBJ = $(SRC:.cpp=.o)
  
 OUT = ./lib/libXrender.a
