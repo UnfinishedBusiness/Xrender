@@ -7,6 +7,8 @@
 #include "gui/TextEditor.h"
 #include "stk500/stk500.h"
 
+#include "http/httplib.h"
+
 TextEditor editor;
 static float progress = 0.0f;
 Xrender_gui_t *menu_bar;
@@ -27,7 +29,7 @@ void mouse_motion(nlohmann::json e)
     //printf("%s\n", e.dump().c_str());
     mouse_pos_in_screen_coordinates = {(double)e["pos"]["x"], (double)e["pos"]["y"]};
     mouse_pos_in_matrix_coordinates = {
-        (mouse_pos_in_screen_coordinates.x -  pan.x) / zoom,
+        (mouse_pos_in_screen_coordinates.x - pan.x) / zoom,
         (mouse_pos_in_screen_coordinates.y - pan.y) / zoom
     };
     //printf("Mouse pos: (%.4f, %.4f)\n", mouse_pos_in_matrix_coordinates.x, mouse_pos_in_matrix_coordinates.y);
@@ -197,7 +199,7 @@ void _menu_bar()
             }
             if (ImGui::MenuItem("Update", ""))
             {
-                stk500_write_program("firmware.hex", "/dev/cu.usbmodemFA121");
+                //stk500_write_program("firmware.hex", "/dev/cu.usbmodemFA121");
             }
             if (ImGui::MenuItem("Close", "")) {}
             ImGui::EndMenu();
