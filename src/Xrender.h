@@ -52,7 +52,12 @@ extern std::vector<Xrender_gui_t*> gui_stack;
 /*
     Returns a pointer to the init variables
 */
-nlohmann::json *Xrender_get_init();
+nlohmann::json Xrender_get_init();
+
+/*
+    Set the init variables
+*/
+void Xrender_update_init(nlohmann::json i);
 
 /*
     Return an unsigned long of the number of milliseconds that have passed since the program has started

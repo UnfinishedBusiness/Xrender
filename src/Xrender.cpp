@@ -33,11 +33,14 @@ vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
 
-nlohmann::json *Xrender_get_init()
+nlohmann::json Xrender_get_init()
 {
-    return &init;
+    return init;
 }
-
+void Xrender_update_init(nlohmann::json i)
+{
+    init = i;
+}
 bool Xrender_init(nlohmann::json i)
 {
     init = i;
