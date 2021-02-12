@@ -48,6 +48,12 @@ extern std::vector<Xrender_key_event_t> key_events;
 extern std::vector<Xrender_timer_t> timers;
 extern std::vector<Xrender_gui_t*> gui_stack;
 
+
+/*
+    Returns a pointer to the init variables
+*/
+nlohmann::json *Xrender_get_init();
+
 /*
     Return an unsigned long of the number of milliseconds that have passed since the program has started
         used for timers and for performance measuring

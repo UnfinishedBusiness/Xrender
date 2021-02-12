@@ -33,6 +33,10 @@ vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
 
+nlohmann::json *Xrender_get_init()
+{
+    return &init;
+}
 
 bool Xrender_init(nlohmann::json i)
 {
@@ -140,6 +144,7 @@ bool Xrender_init(nlohmann::json i)
     }
     SDL_ShowCursor((bool)init["show_cursor"]);
     if (init["maximize"] == true) SDL_MaximizeWindow(gWindow);
+    Xrender_tick();
 	return success;
 }
 void mouse_in(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int mouseY) 
