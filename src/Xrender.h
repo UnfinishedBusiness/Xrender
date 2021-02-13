@@ -4,17 +4,18 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <SDL.h>
 #include <json/json.h>
+
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#endif
+#include <GLFW/glfw3.h>
 
 using namespace std;
 
 struct Xrender_core_t{
-    nlohmann::json init;
-    SDL_Window* gWindow = NULL;
-    SDL_Renderer* gRenderer = NULL;
-    SDL_Texture* gTexture = NULL;
-    SDL_Event e;
+    nlohmann::json data;
+    GLFWwindow* window;
 };
 
 struct Xrender_key_event_t{
@@ -45,7 +46,7 @@ struct double_line_t{
 };
 struct Xrender_object_t{
     nlohmann::json data;
-    SDL_Texture* texture;
+    //SDL_Texture* texture;
     void (*mouse_callback)(Xrender_object_t*, nlohmann::json);
     nlohmann::json (*matrix_data)(nlohmann::json);
 };
@@ -67,6 +68,11 @@ Xrender_core_t *Xrender_get_core_variables();
         used for timers and for performance measuring
 */
 unsigned long Xrender_millis();
+
+/*
+    Blocks until ms time passes...
+*/
+void Xrender_delay(unsigned long ms);
 
 /*
     Init SDL window and setup the library
@@ -91,7 +97,7 @@ bool Xrender_tick();
 /*
     Query the current mouse position
 */
-int_point_t Xrender_get_current_mouse_position();
+double_point_t Xrender_get_current_mouse_position();
 
 
 /*
@@ -216,6 +222,12 @@ unsigned long Xrender_get_performance();
 void Xrender_rebuild_object(Xrender_object_t *o); //Flag an onbject for re-rendering
 void Xrender_close(); //Close the library
 
-
-
+/* Private function */
+static void Xrender_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+static void window_close_callback(GLFWwindow* window);
+static void glfw_error_callback(int error, const char* description);
+static void call_mouse_callback(Xrender_object_t* o, nlohmann::json matrix_data, double mouseX, double mouseY, std::string event);
+static void Xrender_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+static void Xrender_cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 #endif

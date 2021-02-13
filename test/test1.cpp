@@ -201,7 +201,7 @@ void _menu_bar()
             {
                 //stk500_write_program("firmware.hex", "/dev/cu.usbmodemFA121");
                 Xrender_core_t *c = Xrender_get_core_variables();
-                c->init["clear_color"]["r"] = 255;
+                c->data["clear_color"]["r"] = 255;
 
             }
             if (ImGui::MenuItem("Close", "")) {}

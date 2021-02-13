@@ -20,17 +20,17 @@ SRC =   ./src/Xrender.cpp $\
 		./src/serial/impl/list_ports/list_ports_linux.cpp $\
 		./src/serial/impl/list_ports/list_ports_osx.cpp $\
 		./src/serial/impl/list_ports/list_ports_win.cpp $\
-		./src/gui/imgui_impl_sdl.cpp $\
 		./src/gui/imgui.cpp $\
 		./src/gui/imgui_tables.cpp $\
 		./src/gui/imgui_widgets.cpp $\
 		./src/gui/imgui_draw.cpp $\
 		./src/gui/imgui_demo.cpp $\
-		./src/gui/imgui_sdl.cpp $\
 		./src/gui/ImGuiFileDialog.cpp $\
 		./src/gui/TextEditor.cpp $\
 		./src/stk500/stk500.cpp $\
 		./src/hex/hex.cpp $\
+		./src/gui/imgui_impl_opengl2.cpp $\
+		./src/gui/imgui_impl_glfw.cpp $\
 		
 OBJ = $(SRC:.cpp=.o)
  
@@ -40,13 +40,13 @@ OUT = ./lib/libXrender.a
 INCLUDES = -I/usr/local/include -I./src/
  
 # C++ compiler flags (-g -O2 -Wall)
-CCFLAGS = -g `pkg-config --cflags sdl2`
+CCFLAGS = -g `pkg-config --cflags glfw3`
  
 # compiler
 CCC = g++ -std=c++17 -g
  
 # library paths
-LIBS = -L../ -L/usr/local/lib -lm `pkg-config --libs sdl2` -lSDL2_image -lSDL2_ttf -lSDL2_gfx
+LIBS = -L../ -L/usr/local/lib -lm `pkg-config --libs glfw3`
  
 # compile flags
 LDFLAGS = -g

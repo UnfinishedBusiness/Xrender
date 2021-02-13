@@ -6,6 +6,7 @@
  *********************/
 #include <stddef.h>
 #include <string>
+#include <utility>
 #include <json/json.h>
 #include <geometry/clipper.h>
 #include <Xrender.h>

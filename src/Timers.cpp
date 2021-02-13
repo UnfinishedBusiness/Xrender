@@ -21,7 +21,12 @@ unsigned long Xrender_millis()
   unsigned long m = (unsigned long)chrono::duration_cast<chrono::milliseconds>(end - program_start_time).count();
   return m;
 }
-
+void Xrender_delay(unsigned long ms)
+{
+  unsigned long delay_timer = Xrender_millis();
+  while((Xrender_millis() - delay_timer) < ms);
+  return;
+}
 void Xrender_push_timer(unsigned long intervol, bool (*callback)())
 {
     Xrender_timer_t t;

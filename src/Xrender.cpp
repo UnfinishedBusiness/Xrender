@@ -1,7 +1,3 @@
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
-#include <SDL2_gfxPrimitives.h>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -13,22 +9,242 @@
 #include <geometry/geometry.h>
 #include <json/json.h>
 #include <gui/imgui.h>
-#include <gui/imgui_sdl.h>
-#include <gui/imgui_impl_sdl.h>
+#include <gui/imgui_impl_glfw.h>
+#include <gui/imgui_impl_opengl2.h>
 #include <fonts/Sans.ttf.h>
 
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#endif
+#include <GLFW/glfw3.h>
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+   //define something for Windows (32-bit and 64-bit, this part is common)
+   #include <GL/freeglut.h>
+   #ifdef _WIN64
+      //define something for Windows (64-bit only)
+   #else
+      //define something for Windows (32-bit only)
+   #endif
+#elif __APPLE__
+    #include <OpenGL/glu.h>
+#elif __linux__
+    #include <GL/glu.h>
+#elif __unix__
+    #include <GL/glu.h>
+#elif defined(_POSIX_VERSION)
+    // POSIX
+#else
+#   error "Unknown compiler"
+#endif
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
+#pragma comment(lib, "legacy_stdio_definitions")
+#endif
 unsigned long tick_performance; //Measurement of how long the tick function is taking in ms
 unsigned long tick_performance_timestamp; //Millis timestamp of when last tick function began
 
 
 Xrender_core_t *core;
 int mouse_check_skip_cycles = 0;
-#define MOUSE_CHECK_CYCLE 5
+#define MOUSE_CHECK_CYCLE 1
 
 vector<Xrender_key_event_t> key_events;
 vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
+
+static void glfw_error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+static void window_close_callback(GLFWwindow* window)
+{
+    glfwSetWindowShouldClose(core->window, GL_TRUE);
+}
+static void Xrender_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    if (!io.WantCaptureKeyboard || !io.WantCaptureMouse)
+    {
+        if (yoffset > 0)
+        {
+            for (int x = 0; x < key_events.size(); x++)
+            {
+                if (key_events[x].type == "scroll" && key_events[x].key == "up")
+                {
+                    key_events.at(x).callback({"scroll", yoffset});
+                }
+            }
+        }
+        else
+        {
+            for (int x = 0; x < key_events.size(); x++)
+            {
+                if (key_events[x].type == "scroll" && key_events[x].key == "down")
+                {
+                    key_events.at(x).callback({"scroll", yoffset});
+                }
+            }
+        }
+    }
+}
+static void Xrender_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    if (!io.WantCaptureKeyboard || !io.WantCaptureMouse)
+    {
+        double_point_t m = Xrender_get_current_mouse_position();
+        if (button == 0) //Left click
+        {
+            if (action == 0) //Up
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            call_mouse_callback(object_stack[x], matrix_data, m.x, m.y, "left_click_up");
+                        }
+                    }
+                }
+            }
+            if (action == 1) //Down
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            call_mouse_callback(object_stack[x], matrix_data, m.x, m.y, "left_click_down");
+                        }
+                    }
+                }
+            }
+        }
+        if (button == 1) //right click
+        {
+            if (action == 0) //Up
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            call_mouse_callback(object_stack[x], matrix_data, m.x, m.y, "right_click_up");
+                        }
+                    }
+                }
+            }
+            if (action == 1) //Down
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            call_mouse_callback(object_stack[x], matrix_data, m.x, m.y, "right_click_down");
+                        }
+                    }
+                }
+            }
+        }
+        if (button == 2) //middle click
+        {
+            if (action == 0) //Up
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            call_mouse_callback(object_stack[x], matrix_data, m.x, m.y, "middle_click_up");
+                        }
+                    }
+                }
+            }
+            if (action == 1) //Down
+            {
+                for (int x = 0; x < object_stack.size(); x++)
+                {
+                    if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
+                    {
+                        if (object_stack[x]->mouse_callback != NULL)
+                        {
+                            nlohmann::json matrix_data = object_stack[x]->data;
+                            if (object_stack[x]->matrix_data != NULL)
+                            {
+                                matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
+                            }
+                            call_mouse_callback(object_stack[x], matrix_data, m.x, m.y, "middle_click_down");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+static void Xrender_cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    double_point_t m = {xpos - ((double)core->data["window_width"] / 2.0f), ((double)core->data["window_height"] - ypos) - ((double)core->data["window_height"] / 2.0f)};
+    for (int x = 0; x < key_events.size(); x++)
+    {
+        if (key_events[x].type == "mouse_move")
+        {
+            key_events.at(x).callback({{"pos",{{"x", m.x},{"y", m.y}}}});
+        }
+    }
+}
+static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    if (!io.WantCaptureKeyboard || !io.WantCaptureMouse)
+    {
+        for (int x = 0; x < key_events.size(); x++)
+        {
+            if (key_events.at(x).type == "keyup")
+            {
+                if (key_events.at(x).key == string(glfwGetKeyName(key, scancode)))
+                {
+                    if (key_events.at(x).callback != NULL)
+                    {
+                        key_events.at(x).callback({});
+                    }
+                }
+            }
+        }
+    }
+}
 
 Xrender_core_t *Xrender_get_core_variables()
 {
@@ -37,154 +253,103 @@ Xrender_core_t *Xrender_get_core_variables()
 bool Xrender_init(nlohmann::json i)
 {
     core = new Xrender_core_t;
-    core->init = i;
+    core->data = i;
     /*
-        Make sure core->init paramaters are set and if not, then default! 
+        Make sure core->data paramaters are set and if not, then default! 
     */
-    if (!core->init.contains("window_title"))
+    if (!core->data.contains("window_title"))
     {
-        core->init["window_title"] = "Xrender";
+        core->data["window_title"] = "Xrender";
     }
-    if (!core->init.contains("window_width"))
+    if (!core->data.contains("window_width"))
     {
-        core->init["window_width"] = 900;
+        core->data["window_width"] = 900;
     }
-    if (!core->init.contains("window_height"))
+    if (!core->data.contains("window_height"))
     {
-        core->init["window_height"] = 700;
+        core->data["window_height"] = 700;
     }
-    if (!core->init.contains("show_cursor"))
+    if (!core->data.contains("show_cursor"))
     {
-        core->init["show_cursor"] = true;
+        core->data["show_cursor"] = true;
     }
-    if (!core->init.contains("maximize"))
+    if (!core->data.contains("maximize"))
     {
-        core->init["maximize"] = false;
+        core->data["maximize"] = false;
     }
-    if (!core->init.contains("ini_file_name"))
+    if (!core->data.contains("ini_file_name"))
     {
-        core->init["ini_file_name"] = "gui.ini";
+        core->data["ini_file_name"] = "gui.ini";
     }
-    if (!core->init.contains("log_file_name"))
+    if (!core->data.contains("log_file_name"))
     {
-        core->init["log_file_name"] = "gui.log";
+        core->data["log_file_name"] = "gui.log";
     }
-    if (!core->init.contains("gui_style"))
+    if (!core->data.contains("gui_style"))
     {
-        core->init["gui_style"] = "light";
+        core->data["gui_style"] = "light";
     }
-    if (!core->init.contains("clear_color"))
+    if (!core->data.contains("clear_color"))
     {
-        core->init["clear_color"] = {
+        core->data["clear_color"] = {
             {"r", 200},
             {"g", 200},
             {"b", 200},
             {"a", 255}
         };
     }
-
     bool success = true;
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-	{
-		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError());
-		success = false;
-	}
-    else
-	{
-		//Set texture filtering to linear
-		if(!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ))
-		{
-			printf( "Warning: Linear texture filtering not enabled!\n");
-		}
-		//Create window
-		core->gWindow = SDL_CreateWindow( string((std::string)core->init["window_title"]).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)core->init["window_width"], (int)core->init["window_height"], SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-		if( core->gWindow == NULL )
-		{
-			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
-			success = false;
-		}
-		else
-		{
-			//Create renderer for window
-			core->gRenderer = SDL_CreateRenderer( core->gWindow, -1, SDL_RENDERER_ACCELERATED );
-            SDL_SetRenderDrawBlendMode(core->gRenderer, SDL_BLENDMODE_BLEND);
-			if( core->gRenderer == NULL )
-			{
-				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
-				success = false;
-			}
-			else
-			{
-				//Initialize PNG loading
-				int imgFlags = IMG_INIT_PNG;
-				if( !( IMG_Init( imgFlags ) & imgFlags ) )
-				{
-					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
-					success = false;
-				}
-                //Initialize ImGUI
-                ImGui::CreateContext();
-                if (core->init["gui_style"] == "light") ImGui::StyleColorsLight();
-                if (core->init["gui_style"] == "dark") ImGui::StyleColorsDark();
-                ImGuiIO& io = ImGui::GetIO(); (void)io;
-                io.IniFilename = string(core->init["ini_file_name"]).c_str();
-                io.LogFilename = string(core->init["log_file_name"]).c_str();
-	            ImGuiSDL::Initialize(core->gRenderer, (int)core->init["window_width"], (int)core->init["window_height"]);
-                ImGui_ImplSDL2_InitForMetal(core->gWindow);
-			}
-		}
-	}
-    if (TTF_Init() == -1)
+    if (!glfwInit())
     {
-        printf("Could not initialize SDL_TTF!\n");
+        printf("Could not init GLFW3!\n");
         success = false;
     }
-    SDL_ShowCursor((bool)core->init["show_cursor"]);
-    if (core->init["maximize"] == true) SDL_MaximizeWindow(core->gWindow);
+    core->window = glfwCreateWindow((int)core->data["window_width"], (int)core->data["window_height"], string(core->data["window_title"]).c_str(), NULL, NULL);
+    if (core->window == NULL)
+    {
+        printf("Could not open window!\n");
+        success = false;
+    }
+    glfwSetKeyCallback(core->window, Xrender_key_callback);
+    glfwSetMouseButtonCallback(core->window, Xrender_mouse_button_callback);
+    glfwSetScrollCallback(core->window, Xrender_scroll_callback);
+    glfwSetWindowCloseCallback(core->window, window_close_callback);
+    glfwSetCursorPosCallback(core->window, Xrender_cursor_position_callback);
+    glfwMakeContextCurrent(core->window);
+    glfwSwapInterval(1); // Enable vsync
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    ImGui::StyleColorsLight();
+    //ImGui::StyleColorsClassic();
+    ImGui_ImplGlfw_InitForOpenGL(core->window, true);
+    ImGui_ImplOpenGL2_Init();
+    if (core->data["show_cursor"] == false)
+    {
+        glfwSetInputMode(core->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
     Xrender_tick();
 	return success;
 }
-void mouse_in(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int mouseY) 
+void call_mouse_callback(Xrender_object_t* o, nlohmann::json matrix_data, double mouseX, double mouseY, std::string event) 
 {
-    if (o->data["mouse_over"] == false)
+    if (o->mouse_callback != NULL)
     {
-        if (o->mouse_callback != NULL)
-        {
-            o->mouse_callback(o, {
-                {"data", o->data},
-                {"matrix_data", matrix_data},
-                {"event", "mouse_in"},
-                {"mouse_pos", {
-                    {"x", mouseX},
-                    {"y", mouseY}
-                }}
-            });
-        }
+         o->mouse_callback(o, {
+            {"data", o->data},
+            {"matrix_data", matrix_data},
+            {"event", event},
+            {"mouse_pos", {
+                {"x", mouseX},
+                {"y", mouseY}
+            }}
+        });
     }
-    o->data["mouse_over"] = true;
 }
-void mouse_out(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int mouseY) 
-{ 
-    if (o->data["mouse_over"] == true)
-    {
-        if (o->mouse_callback != NULL)
-        {
-            o->mouse_callback(o, {
-                {"data", o->data},
-                {"matrix_data", matrix_data},
-                {"event", "mouse_out"},
-                {"mouse_pos", {
-                    {"x", mouseX},
-                    {"y", mouseY}
-                }}
-            });
-        }
-    }
-    o->data["mouse_over"] = false;
-}
-void render_arc(double cx, double cy, double radius, double start_angle, double end_angle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+void render_arc(double cx, double cy, double radius, double start_angle, double end_angle)
 {
-    SDL_SetRenderDrawColor(core->gRenderer, r, g, b, a);
     if ( (((MAX(start_angle, end_angle) - MIN(start_angle, end_angle)) / 360.0f) * (2 * 3.1415926f * radius)) > 8)
     {
         double num_segments = 10;
@@ -206,12 +371,18 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
             sweeper.x = cx + (radius * cosf((angle_pointer) * 3.1415926f / 180.0f));
             sweeper.y = cy + (radius * sinf((angle_pointer) * 3.1415926f / 180.0f));
             angle_pointer += angle_increment;
-            //aalineRGBA(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, sweeper.x, (double)core->init["window_height"] - sweeper.y, r, g, b, a);
-            SDL_RenderDrawLine(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, sweeper.x, (double)core->init["window_height"] - sweeper.y);
+            glBegin(GL_LINES);
+                glVertex3f(last_point.x, last_point.y, 0);
+                glVertex3f(sweeper.x, sweeper.y, 0);
+            glEnd();
             last_point = sweeper;
         }
-        //aalineRGBA(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, end.x, (double)core->init["window_height"] - end.y, r, g, b, a);
-        SDL_RenderDrawLine(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, end.x, (double)core->init["window_height"] - end.y);
+        //aalineRGBA(core->gRenderer, last_point.x, (double)core->data["window_height"] - last_point.y, end.x, (double)core->data["window_height"] - end.y, r, g, b, a);
+        //SDL_RenderDrawLine(core->gRenderer, last_point.x, (double)core->data["window_height"] - last_point.y, end.x, (double)core->data["window_height"] - end.y);
+        glBegin(GL_LINES);
+            glVertex3f(last_point.x, last_point.y, 0);
+            glVertex3f(end.x, end.y, 0);
+        glEnd();
     }
     else
     {
@@ -221,35 +392,58 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
         start.y = cy + (radius * sinf((start_angle) * 3.1415926f / 180.0f));
         end.x = cx + (radius * cosf((end_angle) * 3.1415926f / 180.0f));
         end.y = cy + (radius * sinf((end_angle) * 3.1415926 / 180.0f));
-        //aalineRGBA(core->gRenderer, start.x, (double)core->init["window_height"] - start.y, end.x, (double)core->init["window_height"] - end.y, r, g, b, a);
-        SDL_RenderDrawLine(core->gRenderer, start.x, (double)core->init["window_height"] - start.y, end.x, (double)core->init["window_height"] - end.y);
+        glBegin(GL_LINES);
+            glVertex3f(start.x, start.y, 0);
+            glVertex3f(end.x, end.y, 0);
+        glEnd();
     }
 }
-int_point_t Xrender_get_current_mouse_position()
+double_point_t Xrender_get_current_mouse_position()
 {
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-    mouseY = (int)core->init["window_height"] - mouseY;
-    return {mouseX, mouseY};
+    double mouseX, mouseY;
+    glfwGetCursorPos(core->window, &mouseX, &mouseY);
+    return {mouseX - ((double)core->data["window_width"] / 2.0f), ((double)core->data["window_height"] - mouseY) - ((double)core->data["window_height"] / 2.0f)};
 }
 bool Xrender_tick()
 {
     tick_performance_timestamp = Xrender_millis();
     Geometry g;
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-    mouseY = (int)core->init["window_height"] - mouseY;
-    SDL_SetRenderDrawColor( core->gRenderer, (uint8_t)core->init["clear_color"]["r"], (uint8_t)core->init["clear_color"]["g"], (uint8_t)core->init["clear_color"]["b"], (uint8_t)core->init["clear_color"]["a"] );
+    int window_width, window_height;
+    float ratio;
+    double_point_t m = Xrender_get_current_mouse_position();
+    glfwGetFramebufferSize(core->window, &window_width, &window_height);
+    ratio = window_width / (float) window_height;
+    core->data["window_width"] = window_width;
+    core->data["window_height"] = window_height;
+    glClearColor((float)core->data["clear_color"]["r"] / 255, (float)core->data["clear_color"]["g"] / 255, (float)core->data["clear_color"]["b"] / 255, (float)core->data["clear_color"]["a"] / 255);
+
+    ImGui_ImplOpenGL2_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    for (int x = 0; x < gui_stack.size(); x++)
+    {
+        if (gui_stack[x]->visable == true)
+        {
+            gui_stack[x]->callback();
+        }
+    }
+    ImGui::Render();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho( -window_width/2, window_width/2, -window_height/2, window_height/2, -1,1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glViewport(0, 0, window_width, window_height);
+    glClear(GL_COLOR_BUFFER_BIT);
 	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
         return lhs->data["zindex"] < rhs->data["zindex"];
     });
-    SDL_Rect dst;
-    SDL_RenderClear( core->gRenderer );
     for (int x = 0; x < object_stack.size(); x++)
     {
         if (object_stack[x]->data["visable"] == true) //Texture re-gen
         {
-            if (object_stack[x]->texture == NULL) //We need to render the texture!
+            /*if (object_stack[x]->texture == NULL) //We need to render the texture!
             {
                 if (object_stack[x]->data["type"] == "text")
                 {
@@ -293,7 +487,7 @@ bool Xrender_tick()
                         SDL_FreeSurface( loadedSurface );
                     }
                 }
-            }
+            }*/
         }
         if (object_stack[x]->data["visable"] == true)
         {
@@ -311,80 +505,118 @@ bool Xrender_tick()
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    if (g.line_intersects_with_circle({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)mouseX, (double)mouseY}, 10))
+                    if (g.line_intersects_with_circle({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)m.x, (double)m.y}, 10))
                     {
-                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == false)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_in");
+                            object_stack[x]->data["mouse_over"] = true;
+                        }    
                     }
                     else
                     {
-                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == true)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_out");
+                            object_stack[x]->data["mouse_over"] = false;
+                        }
                     }
                 }
                 if (object_stack[x]->data["width"] == 1)
                 {
-                    //aalineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->init["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                    SDL_SetRenderDrawColor(core->gRenderer, data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                    SDL_RenderDrawLine(core->gRenderer, (double)data["start"]["x"], (double)core->init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->init["window_height"] - (double)data["end"]["y"]);
+                    //aalineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->data["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->data["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    //SDL_SetRenderDrawColor(core->gRenderer, data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    //SDL_RenderDrawLine(core->gRenderer, (double)data["start"]["x"], (double)core->data["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->data["window_height"] - (double)data["end"]["y"]);
+                    glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
+                    glBegin(GL_LINES);
+                        glVertex3f((double)data["start"]["x"], (double)data["start"]["y"], 0);
+                        glVertex3f((double)data["end"]["x"], (double)data["end"]["y"], 0);
+                    glEnd();
                 }
                 else
                 {
-                    thickLineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->init["window_height"] -  (double)data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    //thickLineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->data["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->data["window_height"] -  (double)data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 }
             }
             else if (object_stack[x]->data["type"] == "arc")
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
-                    g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5) &&
-                    g.lines_intersect({g.create_polar_line({(double)data["center"]["x"], (double)data["center"]["y"]}, (double)data["start_angle"], (double)data["radius"]).end, g.create_polar_line({(double)data["center"]["x"], (double)data["center"]["y"]}, (double)data["end_angle"], (double)data["radius"]).end}, {{(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}}))
+                    if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)m.x, (double)m.y}) > ((double)data["radius"] - 5) &&
+                    g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)m.x, (double)m.y}) < ((double)data["radius"] + 5) &&
+                    g.lines_intersect({g.create_polar_line({(double)data["center"]["x"], (double)data["center"]["y"]}, (double)data["start_angle"], (double)data["radius"]).end, g.create_polar_line({(double)data["center"]["x"], (double)data["center"]["y"]}, (double)data["end_angle"], (double)data["radius"]).end}, {{(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)m.x, (double)m.y}}))
                     {
-                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == false)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_in");
+                            object_stack[x]->data["mouse_over"] = true;
+                        }
                     }
                     else
                     {
-                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == true)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_out");
+                            object_stack[x]->data["mouse_over"] = false;
+                        }
                     }
                     //printf("start_angle: %.4f, end_angle: %.4f\n", (double)data["start_angle"], (double)data["end_angle"]);
                 }
                 //arcRGBA(core->gRenderer, (double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
+                render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"]);
             }
             else if (object_stack[x]->data["type"] == "circle")
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) > ((double)data["radius"] - 5) &&
-                    g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)mouseX, (double)mouseY}) < ((double)data["radius"] + 5))
+                    if (g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)m.x, (double)m.y}) > ((double)data["radius"] - 5) &&
+                    g.distance({(double)data["center"]["x"], (double)data["center"]["y"]}, {(double)m.x, (double)m.y}) < ((double)data["radius"] + 5))
                     {
-                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == false)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_in");
+                            object_stack[x]->data["mouse_over"] = true;
+                        }
                     }
                     else
                     {
-                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == true)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_out");
+                            object_stack[x]->data["mouse_over"] = false;
+                        }
                     }
                 }
-                aacircleRGBA(core->gRenderer, (double)data["center"]["x"], (double)core->init["window_height"] - (double)data["center"]["y"], (double)data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                //aacircleRGBA(core->gRenderer, (double)data["center"]["x"], (double)core->data["window_height"] - (double)data["center"]["y"], (double)data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "box")
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    if (mouseX > (int)data["tl"]["x"] && mouseX < (int)data["br"]["x"] && mouseY > (int)data["tl"]["y"] && mouseY < (int)data["br"]["y"])
+                    if (m.x > (int)data["tl"]["x"] && m.x < (int)data["br"]["x"] && m.y > (int)data["tl"]["y"] && m.y < (int)data["br"]["y"])
                     {
-                        mouse_in(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == false)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_in");
+                            object_stack[x]->data["mouse_over"] = true;
+                        }
                     }
                     else
                     {
-                        mouse_out(object_stack[x], data, mouseX, mouseY);
+                        if (object_stack[x]->data["mouse_over"] == true)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_out");
+                            object_stack[x]->data["mouse_over"] = false;
+                        }
                     }
                 }
-                roundedBoxRGBA(core->gRenderer, (double)data["tl"]["x"], (double)core->init["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)core->init["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                //roundedBoxRGBA(core->gRenderer, (double)data["tl"]["x"], (double)core->data["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)core->data["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else
             {
-                dst.x = object_stack[x]->data["position"]["x"];
-                dst.y = (int)core->init["window_height"] - (int)object_stack[x]->data["position"]["y"];
+                /*dst.x = object_stack[x]->data["position"]["x"];
+                dst.y = (int)core->data["window_height"] - (int)object_stack[x]->data["position"]["y"];
                 if (object_stack[x]->data["size"]["width"] > 0 && object_stack[x]->data["size"]["height"] > 0)
                 {
                     dst.w = object_stack[x]->data["size"]["width"];
@@ -399,338 +631,20 @@ bool Xrender_tick()
                 dst.y -= (int)object_stack[x]->data["size"]["height"];
                 SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
                 SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->data["color"]["a"] );
-                SDL_RenderCopyEx( core->gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE);
+                SDL_RenderCopyEx( core->gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE);*/
             }
         }
     }
-    /*
-        Create ImGUI content
-    */
-    ImGui::NewFrame();
-    ImGui_ImplSDL2_NewFrame(core->gWindow);
+    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+    glfwMakeContextCurrent(core->window);
+    glfwSwapBuffers(core->window);
+    glfwPollEvents();
 
-	//ImGui::ShowDemoWindow();
-    for (int x = 0; x < gui_stack.size(); x++)
-    {
-        if (gui_stack[x]->visable == true)
-        {
-            gui_stack[x]->callback();
-        }
-    }
-    /*
-        Render ImGUI content
-    */
-    ImGui::Render();
-    ImGuiSDL::Render(ImGui::GetDrawData());
-
-    SDL_RenderPresent( core->gRenderer );
     if (mouse_check_skip_cycles > MOUSE_CHECK_CYCLE)
     {
         mouse_check_skip_cycles = 0;
     }
     mouse_check_skip_cycles++;
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-	while ( SDL_PollEvent( &core->e ) != 0 )
-	{
-        //User requests quit
-		if ( core->e.type == SDL_QUIT )
-		{
-			return false;
-		}
-        //Pass events onto ImGUI
-        if (io.WantCaptureKeyboard || io.WantCaptureMouse)
-        {
-            ImGui_ImplSDL2_ProcessEvent(&core->e);
-        }
-        else
-        {
-            if ( core->e.type == SDL_WINDOWEVENT )
-            {
-                if (core->e.window.event == SDL_WINDOWEVENT_RESIZED)
-                {
-                    core->init["window_width"] =  (int)core->e.window.data1;
-                    core->init["window_height"] =  (int)core->e.window.data2;
-                }
-            }
-            /*if (core->e.type == SDL_KEYUP)
-            {
-                printf("%s\n", SDL_GetKeyName(core->e.key.keysym.sym));
-            }*/
-            if(core->e.type == SDL_MOUSEWHEEL)
-            {
-                if(core->e.wheel.y > 0) // scroll up
-                {
-                    // Put code for handling "scroll up" here!
-                }
-                else if(core->e.wheel.y < 0) // scroll down
-                {
-                    // Put code for handling "scroll down" here!
-                }
-
-                if(core->e.wheel.x > 0) // scroll right
-                {
-                    // ...
-                }
-                else if(core->e.wheel.x < 0) // scroll left
-                {
-                    // ...
-                }
-            }
-            if (core->e.type == SDL_MOUSEBUTTONDOWN)
-            {
-                if (core->e.button.button == SDL_BUTTON_LEFT)
-                {
-                    for (int x = 0; x < object_stack.size(); x++)
-                    {
-                        if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
-                        {
-                            if (object_stack[x]->mouse_callback != NULL)
-                            {
-                                nlohmann::json matrix_data = object_stack[x]->data;
-                                if (object_stack[x]->matrix_data != NULL)
-                                {
-                                    matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
-                                }
-                                object_stack[x]->mouse_callback(object_stack[x], {
-                                    {"data", object_stack[x]->data},
-                                    {"matrix_data", matrix_data},
-                                    {"event", "left_click_down"},
-                                    {"mouse_pos", {
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                }
-                if (core->e.button.button == SDL_BUTTON_RIGHT)
-                {
-                    for (int x = 0; x < object_stack.size(); x++)
-                    {
-                        if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
-                        {
-                            if (object_stack[x]->mouse_callback != NULL)
-                            {
-                                nlohmann::json matrix_data = object_stack[x]->data;
-                                if (object_stack[x]->matrix_data != NULL)
-                                {
-                                    matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
-                                }
-                                object_stack[x]->mouse_callback(object_stack[x], {
-                                    {"data", object_stack[x]->data},
-                                    {"matrix_data", matrix_data},
-                                    {"event", "right_click_down"},
-                                    {"mouse_pos", {
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                }
-                if (core->e.button.button == SDL_BUTTON_MIDDLE)
-                {
-                    for (int x = 0; x < object_stack.size(); x++)
-                    {
-                        if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
-                        {
-                            if (object_stack[x]->mouse_callback != NULL)
-                            {
-                                nlohmann::json matrix_data = object_stack[x]->data;
-                                if (object_stack[x]->matrix_data != NULL)
-                                {
-                                    matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
-                                }
-                                object_stack[x]->mouse_callback(object_stack[x], {
-                                    {"data", object_stack[x]->data},
-                                    {"matrix_data", matrix_data},
-                                    {"event", "middle_click_down"},
-                                    {"mouse_pos", {
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            if (core->e.type == SDL_MOUSEBUTTONUP)
-            {
-                if (core->e.button.button == SDL_BUTTON_LEFT)
-                {
-                    for (int x = 0; x < object_stack.size(); x++)
-                    {
-                        if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
-                        {
-                            if (object_stack[x]->mouse_callback != NULL)
-                            {
-                                nlohmann::json matrix_data = object_stack[x]->data;
-                                if (object_stack[x]->matrix_data != NULL)
-                                {
-                                    matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
-                                }
-                                object_stack[x]->mouse_callback(object_stack[x], {
-                                    {"data", object_stack[x]->data},
-                                    {"matrix_data", matrix_data},
-                                    {"event", "left_click_up"},
-                                    {"mouse_pos", {
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                }
-                if (core->e.button.button == SDL_BUTTON_RIGHT)
-                {
-                    for (int x = 0; x < object_stack.size(); x++)
-                    {
-                        if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
-                        {
-                            if (object_stack[x]->mouse_callback != NULL)
-                            {
-                                nlohmann::json matrix_data = object_stack[x]->data;
-                                if (object_stack[x]->matrix_data != NULL)
-                                {
-                                    matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
-                                }
-                                object_stack[x]->mouse_callback(object_stack[x], {
-                                    {"data", object_stack[x]->data},
-                                    {"matrix_data", matrix_data},
-                                    {"event", "right_click_up"},
-                                    {"mouse_pos", {
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                }
-                if (core->e.button.button == SDL_BUTTON_MIDDLE)
-                {
-                    for (int x = 0; x < object_stack.size(); x++)
-                    {
-                        if (object_stack[x]->data["visable"] == true && object_stack[x]->data["mouse_over"] == true)
-                        {
-                            if (object_stack[x]->mouse_callback != NULL)
-                            {
-                                nlohmann::json matrix_data = object_stack[x]->data;
-                                if (object_stack[x]->matrix_data != NULL)
-                                {
-                                    matrix_data = object_stack[x]->matrix_data(object_stack[x]->data);
-                                }
-                                object_stack[x]->mouse_callback(object_stack[x], {
-                                    {"data", object_stack[x]->data},
-                                    {"matrix_data", matrix_data},
-                                    {"event", "middle_click_up"},
-                                    {"mouse_pos", {
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            for (int x = 0; x < key_events.size(); x++)
-            {
-                if (key_events.at(x).type == "keyup" && core->e.type == SDL_KEYUP)
-                {
-                    if (key_events.at(x).key == string(SDL_GetKeyName(core->e.key.keysym.sym)))
-                    {
-                        if (key_events.at(x).callback != NULL)
-                        {
-                            key_events.at(x).callback({});
-                        }
-                    }
-                }
-                if (key_events.at(x).type == "keydown" && core->e.type == SDL_KEYDOWN)
-                {
-                    if (key_events.at(x).key == string(SDL_GetKeyName(core->e.key.keysym.sym)))
-                    {
-                        if (key_events.at(x).callback != NULL)
-                        {
-                            key_events.at(x).callback({});
-                        }
-                    }
-                }
-                if (key_events.at(x).type == "scroll" && core->e.type == SDL_MOUSEWHEEL)
-                {
-                    if(core->e.wheel.y > 0) // scroll up
-                    {
-                        if (key_events.at(x).key == "up")
-                        {
-                            if (key_events.at(x).callback != NULL)
-                            {
-                                key_events.at(x).callback({"scroll", core->e.wheel.y});
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (key_events.at(x).key == "down")
-                        {
-                            if (key_events.at(x).callback != NULL)
-                            {
-                                key_events.at(x).callback({"scroll", core->e.wheel.y});
-                            }
-                        }
-                    }
-                }
-                if (key_events.at(x).type == "mouse_move" && core->e.type == SDL_MOUSEMOTION)
-                {
-                    if (key_events.at(x).callback != NULL)
-                    {
-                        key_events.at(x).callback({
-                            {"pos",{
-                                {"x", mouseX},
-                                {"y", mouseY}
-                            }}
-                        });
-                    }
-                }
-                if (key_events.at(x).type == "mouse_click" && core->e.type == SDL_MOUSEBUTTONDOWN)
-                {
-                    if (core->e.button.button == SDL_BUTTON_LEFT)
-                    {
-                        if (key_events.at(x).key == "left")
-                        {
-                            if (key_events.at(x).callback != NULL)
-                            {
-                                key_events.at(x).callback({
-                                    {"pos",{
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                    if (core->e.button.button == SDL_BUTTON_RIGHT)
-                    {
-                        if (key_events.at(x).key == "right")
-                        {
-                            if (key_events.at(x).callback != NULL)
-                            {
-                                key_events.at(x).callback({
-                                    {"pos",{
-                                        {"x", mouseX},
-                                        {"y", mouseY}
-                                    }}
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
     for (int x = 0; x < timers.size(); x++)
     {
         if ((Xrender_millis() - timers[x].timer) > timers[x].intervol)
@@ -746,24 +660,19 @@ bool Xrender_tick()
         }
     }
     tick_performance = Xrender_millis() - tick_performance_timestamp;
-    return true;
+    return !glfwWindowShouldClose(core->window);
 }
 void Xrender_close()
 {
     for (int x = 0; x < object_stack.size(); x++)
     {
-        SDL_DestroyTexture( object_stack[x]->texture );
-        object_stack[x]->texture = NULL;
-        free(object_stack[x]);
+        
     }
-    ImGui_ImplSDL2_Shutdown();
-    ImGuiSDL::Deinitialize();
-    SDL_DestroyRenderer( core->gRenderer );
-    core->gRenderer = NULL;
-	SDL_DestroyWindow( core->gWindow );
-	core->gWindow = NULL;
-	IMG_Quit();
-	SDL_Quit();
+    ImGui_ImplOpenGL2_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(core->window);
+    glfwTerminate();
     delete core;
 }
 
