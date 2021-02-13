@@ -20,11 +20,8 @@
 unsigned long tick_performance; //Measurement of how long the tick function is taking in ms
 unsigned long tick_performance_timestamp; //Millis timestamp of when last tick function began
 
-SDL_Window* gWindow = NULL;
-SDL_Renderer* gRenderer = NULL;
-SDL_Texture* gTexture = NULL;
-SDL_Event e;
-nlohmann::json init;
+
+Xrender_core_t *core;
 int mouse_check_skip_cycles = 0;
 #define MOUSE_CHECK_CYCLE 5
 
@@ -33,55 +30,52 @@ vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
 
-nlohmann::json Xrender_get_init()
+Xrender_core_t *Xrender_get_core_variables()
 {
-    return init;
-}
-void Xrender_update_init(nlohmann::json i)
-{
-    init = i;
+    return core;
 }
 bool Xrender_init(nlohmann::json i)
 {
-    init = i;
+    core = new Xrender_core_t;
+    core->init = i;
     /*
-        Make sure init paramaters are set and if not, then default! 
+        Make sure core->init paramaters are set and if not, then default! 
     */
-    if (!init.contains("window_title"))
+    if (!core->init.contains("window_title"))
     {
-        init["window_title"] = "Xrender";
+        core->init["window_title"] = "Xrender";
     }
-    if (!init.contains("window_width"))
+    if (!core->init.contains("window_width"))
     {
-        init["window_width"] = 900;
+        core->init["window_width"] = 900;
     }
-    if (!init.contains("window_height"))
+    if (!core->init.contains("window_height"))
     {
-        init["window_height"] = 700;
+        core->init["window_height"] = 700;
     }
-    if (!init.contains("show_cursor"))
+    if (!core->init.contains("show_cursor"))
     {
-        init["show_cursor"] = true;
+        core->init["show_cursor"] = true;
     }
-    if (!init.contains("maximize"))
+    if (!core->init.contains("maximize"))
     {
-        init["maximize"] = false;
+        core->init["maximize"] = false;
     }
-    if (!init.contains("ini_file_name"))
+    if (!core->init.contains("ini_file_name"))
     {
-        init["ini_file_name"] = "gui.ini";
+        core->init["ini_file_name"] = "gui.ini";
     }
-    if (!init.contains("log_file_name"))
+    if (!core->init.contains("log_file_name"))
     {
-        init["log_file_name"] = "gui.log";
+        core->init["log_file_name"] = "gui.log";
     }
-    if (!init.contains("gui_style"))
+    if (!core->init.contains("gui_style"))
     {
-        init["gui_style"] = "light";
+        core->init["gui_style"] = "light";
     }
-    if (!init.contains("clear_color"))
+    if (!core->init.contains("clear_color"))
     {
-        init["clear_color"] = {
+        core->init["clear_color"] = {
             {"r", 200},
             {"g", 200},
             {"b", 200},
@@ -103,8 +97,8 @@ bool Xrender_init(nlohmann::json i)
 			printf( "Warning: Linear texture filtering not enabled!\n");
 		}
 		//Create window
-		gWindow = SDL_CreateWindow( string((std::string)init["window_title"]).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)init["window_width"], (int)init["window_height"], SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-		if( gWindow == NULL )
+		core->gWindow = SDL_CreateWindow( string((std::string)core->init["window_title"]).c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)core->init["window_width"], (int)core->init["window_height"], SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+		if( core->gWindow == NULL )
 		{
 			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
 			success = false;
@@ -112,9 +106,9 @@ bool Xrender_init(nlohmann::json i)
 		else
 		{
 			//Create renderer for window
-			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
-            SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
-			if( gRenderer == NULL )
+			core->gRenderer = SDL_CreateRenderer( core->gWindow, -1, SDL_RENDERER_ACCELERATED );
+            SDL_SetRenderDrawBlendMode(core->gRenderer, SDL_BLENDMODE_BLEND);
+			if( core->gRenderer == NULL )
 			{
 				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
 				success = false;
@@ -130,13 +124,13 @@ bool Xrender_init(nlohmann::json i)
 				}
                 //Initialize ImGUI
                 ImGui::CreateContext();
-                if (init["gui_style"] == "light") ImGui::StyleColorsLight();
-                if (init["gui_style"] == "dark") ImGui::StyleColorsDark();
+                if (core->init["gui_style"] == "light") ImGui::StyleColorsLight();
+                if (core->init["gui_style"] == "dark") ImGui::StyleColorsDark();
                 ImGuiIO& io = ImGui::GetIO(); (void)io;
-                io.IniFilename = string(init["ini_file_name"]).c_str();
-                io.LogFilename = string(init["log_file_name"]).c_str();
-	            ImGuiSDL::Initialize(gRenderer, (int)init["window_width"], (int)init["window_height"]);
-                ImGui_ImplSDL2_InitForMetal(gWindow);
+                io.IniFilename = string(core->init["ini_file_name"]).c_str();
+                io.LogFilename = string(core->init["log_file_name"]).c_str();
+	            ImGuiSDL::Initialize(core->gRenderer, (int)core->init["window_width"], (int)core->init["window_height"]);
+                ImGui_ImplSDL2_InitForMetal(core->gWindow);
 			}
 		}
 	}
@@ -145,8 +139,8 @@ bool Xrender_init(nlohmann::json i)
         printf("Could not initialize SDL_TTF!\n");
         success = false;
     }
-    SDL_ShowCursor((bool)init["show_cursor"]);
-    if (init["maximize"] == true) SDL_MaximizeWindow(gWindow);
+    SDL_ShowCursor((bool)core->init["show_cursor"]);
+    if (core->init["maximize"] == true) SDL_MaximizeWindow(core->gWindow);
     Xrender_tick();
 	return success;
 }
@@ -190,7 +184,7 @@ void mouse_out(Xrender_object_t* o, nlohmann::json matrix_data, int mouseX, int 
 }
 void render_arc(double cx, double cy, double radius, double start_angle, double end_angle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-    SDL_SetRenderDrawColor(gRenderer, r, g, b, a);
+    SDL_SetRenderDrawColor(core->gRenderer, r, g, b, a);
     if ( (((MAX(start_angle, end_angle) - MIN(start_angle, end_angle)) / 360.0f) * (2 * 3.1415926f * radius)) > 8)
     {
         double num_segments = 10;
@@ -212,12 +206,12 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
             sweeper.x = cx + (radius * cosf((angle_pointer) * 3.1415926f / 180.0f));
             sweeper.y = cy + (radius * sinf((angle_pointer) * 3.1415926f / 180.0f));
             angle_pointer += angle_increment;
-            //aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y, r, g, b, a);
-            SDL_RenderDrawLine(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, sweeper.x, (double)init["window_height"] - sweeper.y);
+            //aalineRGBA(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, sweeper.x, (double)core->init["window_height"] - sweeper.y, r, g, b, a);
+            SDL_RenderDrawLine(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, sweeper.x, (double)core->init["window_height"] - sweeper.y);
             last_point = sweeper;
         }
-        //aalineRGBA(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
-        SDL_RenderDrawLine(gRenderer, last_point.x, (double)init["window_height"] - last_point.y, end.x, (double)init["window_height"] - end.y);
+        //aalineRGBA(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, end.x, (double)core->init["window_height"] - end.y, r, g, b, a);
+        SDL_RenderDrawLine(core->gRenderer, last_point.x, (double)core->init["window_height"] - last_point.y, end.x, (double)core->init["window_height"] - end.y);
     }
     else
     {
@@ -227,15 +221,15 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
         start.y = cy + (radius * sinf((start_angle) * 3.1415926f / 180.0f));
         end.x = cx + (radius * cosf((end_angle) * 3.1415926f / 180.0f));
         end.y = cy + (radius * sinf((end_angle) * 3.1415926 / 180.0f));
-        //aalineRGBA(gRenderer, start.x, (double)init["window_height"] - start.y, end.x, (double)init["window_height"] - end.y, r, g, b, a);
-        SDL_RenderDrawLine(gRenderer, start.x, (double)init["window_height"] - start.y, end.x, (double)init["window_height"] - end.y);
+        //aalineRGBA(core->gRenderer, start.x, (double)core->init["window_height"] - start.y, end.x, (double)core->init["window_height"] - end.y, r, g, b, a);
+        SDL_RenderDrawLine(core->gRenderer, start.x, (double)core->init["window_height"] - start.y, end.x, (double)core->init["window_height"] - end.y);
     }
 }
 int_point_t Xrender_get_current_mouse_position()
 {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
-    mouseY = (int)init["window_height"] - mouseY;
+    mouseY = (int)core->init["window_height"] - mouseY;
     return {mouseX, mouseY};
 }
 bool Xrender_tick()
@@ -244,13 +238,13 @@ bool Xrender_tick()
     Geometry g;
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
-    mouseY = (int)init["window_height"] - mouseY;
-    SDL_SetRenderDrawColor( gRenderer, (uint8_t)init["clear_color"]["r"], (uint8_t)init["clear_color"]["g"], (uint8_t)init["clear_color"]["b"], (uint8_t)init["clear_color"]["a"] );
+    mouseY = (int)core->init["window_height"] - mouseY;
+    SDL_SetRenderDrawColor( core->gRenderer, (uint8_t)core->init["clear_color"]["r"], (uint8_t)core->init["clear_color"]["g"], (uint8_t)core->init["clear_color"]["b"], (uint8_t)core->init["clear_color"]["a"] );
 	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
         return lhs->data["zindex"] < rhs->data["zindex"];
     });
     SDL_Rect dst;
-    SDL_RenderClear( gRenderer );
+    SDL_RenderClear( core->gRenderer );
     for (int x = 0; x < object_stack.size(); x++)
     {
         if (object_stack[x]->data["visable"] == true) //Texture re-gen
@@ -273,7 +267,7 @@ bool Xrender_tick()
                         SDL_Color color = {object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"]};
                         SDL_Surface* surfaceMessage = TTF_RenderText_Solid(f, string(object_stack[x]->data["textval"]).c_str(), color);
                         //SDL_DestroyTexture(ObjectStack[x].texture);
-                        object_stack[x]->texture = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage);
+                        object_stack[x]->texture = SDL_CreateTextureFromSurface(core->gRenderer, surfaceMessage);
                         SDL_FreeSurface(surfaceMessage);
                         TTF_CloseFont(f);
                     }
@@ -291,7 +285,7 @@ bool Xrender_tick()
                     }
                     else
                     {
-                        object_stack[x]->texture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
+                        object_stack[x]->texture = SDL_CreateTextureFromSurface( core->gRenderer, loadedSurface );
                         if( object_stack[x]->texture == NULL )
                         {
                             printf( "Unable to create texture from %s! SDL Error: %s\n", string(object_stack[x]->data["path"]).c_str(), SDL_GetError() );
@@ -328,13 +322,13 @@ bool Xrender_tick()
                 }
                 if (object_stack[x]->data["width"] == 1)
                 {
-                    //aalineRGBA(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                    SDL_SetRenderDrawColor(gRenderer, data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                    SDL_RenderDrawLine(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] - (double)data["end"]["y"]);
+                    //aalineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->init["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    SDL_SetRenderDrawColor(core->gRenderer, data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    SDL_RenderDrawLine(core->gRenderer, (double)data["start"]["x"], (double)core->init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->init["window_height"] - (double)data["end"]["y"]);
                 }
                 else
                 {
-                    thickLineRGBA(gRenderer, (double)data["start"]["x"], (double)init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)init["window_height"] -  (double)data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                    thickLineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->init["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->init["window_height"] -  (double)data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 }
             }
             else if (object_stack[x]->data["type"] == "arc")
@@ -353,7 +347,7 @@ bool Xrender_tick()
                     }
                     //printf("start_angle: %.4f, end_angle: %.4f\n", (double)data["start_angle"], (double)data["end_angle"]);
                 }
-                //arcRGBA(gRenderer, (double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                //arcRGBA(core->gRenderer, (double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "circle")
@@ -370,7 +364,7 @@ bool Xrender_tick()
                         mouse_out(object_stack[x], data, mouseX, mouseY);
                     }
                 }
-                aacircleRGBA(gRenderer, (double)data["center"]["x"], (double)init["window_height"] - (double)data["center"]["y"], (double)data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                aacircleRGBA(core->gRenderer, (double)data["center"]["x"], (double)core->init["window_height"] - (double)data["center"]["y"], (double)data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else if (object_stack[x]->data["type"] == "box")
             {
@@ -385,12 +379,12 @@ bool Xrender_tick()
                         mouse_out(object_stack[x], data, mouseX, mouseY);
                     }
                 }
-                roundedBoxRGBA(gRenderer, (double)data["tl"]["x"], (double)init["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)init["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                roundedBoxRGBA(core->gRenderer, (double)data["tl"]["x"], (double)core->init["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)core->init["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
             }
             else
             {
                 dst.x = object_stack[x]->data["position"]["x"];
-                dst.y = (int)init["window_height"] - (int)object_stack[x]->data["position"]["y"];
+                dst.y = (int)core->init["window_height"] - (int)object_stack[x]->data["position"]["y"];
                 if (object_stack[x]->data["size"]["width"] > 0 && object_stack[x]->data["size"]["height"] > 0)
                 {
                     dst.w = object_stack[x]->data["size"]["width"];
@@ -405,7 +399,7 @@ bool Xrender_tick()
                 dst.y -= (int)object_stack[x]->data["size"]["height"];
                 SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
                 SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->data["color"]["a"] );
-                SDL_RenderCopyEx( gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE);
+                SDL_RenderCopyEx( core->gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE);
             }
         }
     }
@@ -413,7 +407,7 @@ bool Xrender_tick()
         Create ImGUI content
     */
     ImGui::NewFrame();
-    ImGui_ImplSDL2_NewFrame(gWindow);
+    ImGui_ImplSDL2_NewFrame(core->gWindow);
 
 	//ImGui::ShowDemoWindow();
     for (int x = 0; x < gui_stack.size(); x++)
@@ -429,62 +423,62 @@ bool Xrender_tick()
     ImGui::Render();
     ImGuiSDL::Render(ImGui::GetDrawData());
 
-    SDL_RenderPresent( gRenderer );
+    SDL_RenderPresent( core->gRenderer );
     if (mouse_check_skip_cycles > MOUSE_CHECK_CYCLE)
     {
         mouse_check_skip_cycles = 0;
     }
     mouse_check_skip_cycles++;
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-	while ( SDL_PollEvent( &e ) != 0 )
+	while ( SDL_PollEvent( &core->e ) != 0 )
 	{
         //User requests quit
-		if ( e.type == SDL_QUIT )
+		if ( core->e.type == SDL_QUIT )
 		{
 			return false;
 		}
         //Pass events onto ImGUI
         if (io.WantCaptureKeyboard || io.WantCaptureMouse)
         {
-            ImGui_ImplSDL2_ProcessEvent(&e);
+            ImGui_ImplSDL2_ProcessEvent(&core->e);
         }
         else
         {
-            if ( e.type == SDL_WINDOWEVENT )
+            if ( core->e.type == SDL_WINDOWEVENT )
             {
-                if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+                if (core->e.window.event == SDL_WINDOWEVENT_RESIZED)
                 {
-                    init["window_width"] =  (int)e.window.data1;
-                    init["window_height"] =  (int)e.window.data2;
+                    core->init["window_width"] =  (int)core->e.window.data1;
+                    core->init["window_height"] =  (int)core->e.window.data2;
                 }
             }
-            /*if (e.type == SDL_KEYUP)
+            /*if (core->e.type == SDL_KEYUP)
             {
-                printf("%s\n", SDL_GetKeyName(e.key.keysym.sym));
+                printf("%s\n", SDL_GetKeyName(core->e.key.keysym.sym));
             }*/
-            if(e.type == SDL_MOUSEWHEEL)
+            if(core->e.type == SDL_MOUSEWHEEL)
             {
-                if(e.wheel.y > 0) // scroll up
+                if(core->e.wheel.y > 0) // scroll up
                 {
                     // Put code for handling "scroll up" here!
                 }
-                else if(e.wheel.y < 0) // scroll down
+                else if(core->e.wheel.y < 0) // scroll down
                 {
                     // Put code for handling "scroll down" here!
                 }
 
-                if(e.wheel.x > 0) // scroll right
+                if(core->e.wheel.x > 0) // scroll right
                 {
                     // ...
                 }
-                else if(e.wheel.x < 0) // scroll left
+                else if(core->e.wheel.x < 0) // scroll left
                 {
                     // ...
                 }
             }
-            if (e.type == SDL_MOUSEBUTTONDOWN)
+            if (core->e.type == SDL_MOUSEBUTTONDOWN)
             {
-                if (e.button.button == SDL_BUTTON_LEFT)
+                if (core->e.button.button == SDL_BUTTON_LEFT)
                 {
                     for (int x = 0; x < object_stack.size(); x++)
                     {
@@ -510,7 +504,7 @@ bool Xrender_tick()
                         }
                     }
                 }
-                if (e.button.button == SDL_BUTTON_RIGHT)
+                if (core->e.button.button == SDL_BUTTON_RIGHT)
                 {
                     for (int x = 0; x < object_stack.size(); x++)
                     {
@@ -536,7 +530,7 @@ bool Xrender_tick()
                         }
                     }
                 }
-                if (e.button.button == SDL_BUTTON_MIDDLE)
+                if (core->e.button.button == SDL_BUTTON_MIDDLE)
                 {
                     for (int x = 0; x < object_stack.size(); x++)
                     {
@@ -563,9 +557,9 @@ bool Xrender_tick()
                     }
                 }
             }
-            if (e.type == SDL_MOUSEBUTTONUP)
+            if (core->e.type == SDL_MOUSEBUTTONUP)
             {
-                if (e.button.button == SDL_BUTTON_LEFT)
+                if (core->e.button.button == SDL_BUTTON_LEFT)
                 {
                     for (int x = 0; x < object_stack.size(); x++)
                     {
@@ -591,7 +585,7 @@ bool Xrender_tick()
                         }
                     }
                 }
-                if (e.button.button == SDL_BUTTON_RIGHT)
+                if (core->e.button.button == SDL_BUTTON_RIGHT)
                 {
                     for (int x = 0; x < object_stack.size(); x++)
                     {
@@ -617,7 +611,7 @@ bool Xrender_tick()
                         }
                     }
                 }
-                if (e.button.button == SDL_BUTTON_MIDDLE)
+                if (core->e.button.button == SDL_BUTTON_MIDDLE)
                 {
                     for (int x = 0; x < object_stack.size(); x++)
                     {
@@ -646,9 +640,9 @@ bool Xrender_tick()
             }
             for (int x = 0; x < key_events.size(); x++)
             {
-                if (key_events.at(x).type == "keyup" && e.type == SDL_KEYUP)
+                if (key_events.at(x).type == "keyup" && core->e.type == SDL_KEYUP)
                 {
-                    if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
+                    if (key_events.at(x).key == string(SDL_GetKeyName(core->e.key.keysym.sym)))
                     {
                         if (key_events.at(x).callback != NULL)
                         {
@@ -656,9 +650,9 @@ bool Xrender_tick()
                         }
                     }
                 }
-                if (key_events.at(x).type == "keydown" && e.type == SDL_KEYDOWN)
+                if (key_events.at(x).type == "keydown" && core->e.type == SDL_KEYDOWN)
                 {
-                    if (key_events.at(x).key == string(SDL_GetKeyName(e.key.keysym.sym)))
+                    if (key_events.at(x).key == string(SDL_GetKeyName(core->e.key.keysym.sym)))
                     {
                         if (key_events.at(x).callback != NULL)
                         {
@@ -666,15 +660,15 @@ bool Xrender_tick()
                         }
                     }
                 }
-                if (key_events.at(x).type == "scroll" && e.type == SDL_MOUSEWHEEL)
+                if (key_events.at(x).type == "scroll" && core->e.type == SDL_MOUSEWHEEL)
                 {
-                    if(e.wheel.y > 0) // scroll up
+                    if(core->e.wheel.y > 0) // scroll up
                     {
                         if (key_events.at(x).key == "up")
                         {
                             if (key_events.at(x).callback != NULL)
                             {
-                                key_events.at(x).callback({"scroll", e.wheel.y});
+                                key_events.at(x).callback({"scroll", core->e.wheel.y});
                             }
                         }
                     }
@@ -684,12 +678,12 @@ bool Xrender_tick()
                         {
                             if (key_events.at(x).callback != NULL)
                             {
-                                key_events.at(x).callback({"scroll", e.wheel.y});
+                                key_events.at(x).callback({"scroll", core->e.wheel.y});
                             }
                         }
                     }
                 }
-                if (key_events.at(x).type == "mouse_move" && e.type == SDL_MOUSEMOTION)
+                if (key_events.at(x).type == "mouse_move" && core->e.type == SDL_MOUSEMOTION)
                 {
                     if (key_events.at(x).callback != NULL)
                     {
@@ -701,9 +695,9 @@ bool Xrender_tick()
                         });
                     }
                 }
-                if (key_events.at(x).type == "mouse_click" && e.type == SDL_MOUSEBUTTONDOWN)
+                if (key_events.at(x).type == "mouse_click" && core->e.type == SDL_MOUSEBUTTONDOWN)
                 {
-                    if (e.button.button == SDL_BUTTON_LEFT)
+                    if (core->e.button.button == SDL_BUTTON_LEFT)
                     {
                         if (key_events.at(x).key == "left")
                         {
@@ -718,7 +712,7 @@ bool Xrender_tick()
                             }
                         }
                     }
-                    if (e.button.button == SDL_BUTTON_RIGHT)
+                    if (core->e.button.button == SDL_BUTTON_RIGHT)
                     {
                         if (key_events.at(x).key == "right")
                         {
@@ -764,12 +758,13 @@ void Xrender_close()
     }
     ImGui_ImplSDL2_Shutdown();
     ImGuiSDL::Deinitialize();
-    SDL_DestroyRenderer( gRenderer );
-    gRenderer = NULL;
-	SDL_DestroyWindow( gWindow );
-	gWindow = NULL;
+    SDL_DestroyRenderer( core->gRenderer );
+    core->gRenderer = NULL;
+	SDL_DestroyWindow( core->gWindow );
+	core->gWindow = NULL;
 	IMG_Quit();
 	SDL_Quit();
+    delete core;
 }
 
 Xrender_gui_t *Xrender_push_gui(bool visable, void (*callback)())

@@ -9,6 +9,14 @@
 
 using namespace std;
 
+struct Xrender_core_t{
+    nlohmann::json init;
+    SDL_Window* gWindow = NULL;
+    SDL_Renderer* gRenderer = NULL;
+    SDL_Texture* gTexture = NULL;
+    SDL_Event e;
+};
+
 struct Xrender_key_event_t{
     std::string key;
     std::string type; //keyup, keydown, scroll, mouse_click, mouse_move
@@ -50,14 +58,9 @@ extern std::vector<Xrender_gui_t*> gui_stack;
 
 
 /*
-    Returns a pointer to the init variables
+    Returns a pointer to the core variables
 */
-nlohmann::json Xrender_get_init();
-
-/*
-    Set the init variables
-*/
-void Xrender_update_init(nlohmann::json i);
+Xrender_core_t *Xrender_get_core_variables();
 
 /*
     Return an unsigned long of the number of milliseconds that have passed since the program has started
