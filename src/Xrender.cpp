@@ -420,8 +420,6 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
             glEnd();
             last_point = sweeper;
         }
-        //aalineRGBA(core->gRenderer, last_point.x, (double)core->data["window_height"] - last_point.y, end.x, (double)core->data["window_height"] - end.y, r, g, b, a);
-        //SDL_RenderDrawLine(core->gRenderer, last_point.x, (double)core->data["window_height"] - last_point.y, end.x, (double)core->data["window_height"] - end.y);
         glBegin(GL_LINES);
             glVertex3f(last_point.x, last_point.y, 0);
             glVertex3f(end.x, end.y, 0);
@@ -471,7 +469,6 @@ bool Xrender_tick()
         }
     }
     ImGui::Render();
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho( -window_width/2, window_width/2, -window_height/2, window_height/2, -1,1);
