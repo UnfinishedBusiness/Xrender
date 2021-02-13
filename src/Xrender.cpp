@@ -524,19 +524,20 @@ bool Xrender_tick()
 
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
                 glPushMatrix();
-                glTranslatef((double)object_stack[x]->data["position"]["x"], (double)object_stack[x]->data["position"]["y"], 0.0);
-                glRotatef((double)object_stack[x]->data["angle"] - 180, 0.0, 0.0, 1.0);
-                double imgWidth, imgHeight;
-                imgWidth = (double)object_stack[x]->data["size"]["width"];
-                imgHeight = (double)object_stack[x]->data["size"]["height"];
-                glBindTexture(GL_TEXTURE_2D, object_stack[x]->texture);
-                glEnable(GL_TEXTURE_2D);
-                glBegin(GL_QUADS);
-                    glTexCoord2f(0, 0); glVertex2f(-imgWidth, -imgHeight);
-                    glTexCoord2f(1, 0); glVertex2f(imgWidth, -imgHeight);
-                    glTexCoord2f(1,1);  glVertex2f(imgWidth, imgHeight);
-                    glTexCoord2f(0, 1); glVertex2f(-imgWidth, imgHeight);
-                glEnd();
+                    glTranslatef((double)object_stack[x]->data["position"]["x"], (double)object_stack[x]->data["position"]["y"], 0.0);
+                    glRotatef((double)object_stack[x]->data["angle"] - 180, 0.0, 0.0, 1.0);
+                    double imgWidth = (double)object_stack[x]->data["size"]["width"];
+                    double imgHeight = (double)object_stack[x]->data["size"]["height"];
+                    glBindTexture(GL_TEXTURE_2D, object_stack[x]->texture);
+                    glEnable(GL_TEXTURE_2D);
+                        glBegin(GL_QUADS);
+                            glTexCoord2f(0, 0); glVertex2f(-imgWidth, -imgHeight);
+                            glTexCoord2f(1, 0); glVertex2f(imgWidth, -imgHeight);
+                            glTexCoord2f(1,1);  glVertex2f(imgWidth, imgHeight);
+                            glTexCoord2f(0, 1); glVertex2f(-imgWidth, imgHeight);
+                        glEnd();
+                    glDisable(GL_TEXTURE_2D);
+                    glFlush();
                 glPopMatrix();
             }
             if (object_stack[x]->data["type"] == "line")

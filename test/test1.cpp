@@ -142,7 +142,7 @@ void plus_key(nlohmann::json e)
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
-    image->data["angle"] = (double)image->data["angle"] + 1;
+    //image->data["angle"] = (double)image->data["angle"] + 1;
 }
 void minus_key(nlohmann::json e)
 {
@@ -155,7 +155,7 @@ void minus_key(nlohmann::json e)
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
-    image->data["angle"] = (double)image->data["angle"] - 1;
+    //image->data["angle"] = (double)image->data["angle"] - 1;
 }
 void up(nlohmann::json e)
 {
@@ -203,9 +203,9 @@ void _menu_bar()
             if (ImGui::MenuItem("Update", ""))
             {
                 //stk500_write_program("firmware.hex", "/dev/cu.usbmodemFA121");
-                Xrender_core_t *c = Xrender_get_core_variables();
-                c->data["clear_color"]["r"] = 255;
-
+                //Xrender_core_t *c = Xrender_get_core_variables();
+                //c->data["clear_color"]["r"] = 255;
+                image->data["visable"] = true;
             }
             if (ImGui::MenuItem("Close", "")) {}
             ImGui::EndMenu();
@@ -346,7 +346,9 @@ int main()
 
         image = Xrender_push_image({
             {"path", "Background.png"},
+            {"zindex", 10},
             {"angle", 0},
+            {"visable", false},
             {"position", {
                 {"x", 0},
                 {"y", 0}
