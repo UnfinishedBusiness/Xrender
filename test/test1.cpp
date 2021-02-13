@@ -16,6 +16,7 @@ Xrender_gui_t *progress_window;
 Xrender_gui_t *editor_window;
 Xrender_object_t *performance_label;
 Xrender_object_t *circle;
+Xrender_object_t *image;
 
 serial::Serial serial_port;
 
@@ -140,7 +141,8 @@ void plus_key(nlohmann::json e)
     }
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
-    pan.y += mouse_pos_in_matrix_coordinates.y * scalechange; 
+    pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
+    image->data["angle"] = (double)image->data["angle"] + 1;
 }
 void minus_key(nlohmann::json e)
 {
@@ -152,7 +154,8 @@ void minus_key(nlohmann::json e)
     }
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
-    pan.y += mouse_pos_in_matrix_coordinates.y * scalechange; 
+    pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
+    image->data["angle"] = (double)image->data["angle"] - 1;
 }
 void up(nlohmann::json e)
 {
@@ -316,9 +319,11 @@ void _editor_window()
 int main()
 {
     Geometry g;
+    Xrender_core_t *core;
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
     if (Xrender_init({{"window_title", "Test1"}, {"maximize", true}, {"clear_color", { {"r", 0}, {"g", 51}, {"b", 102}, {"a", 255}}}}))
     {
+        core = Xrender_get_core_variables();
         Xrender_push_key_event({"up", "scroll", plus_key});
         Xrender_push_key_event({"down", "scroll", minus_key});
         Xrender_push_key_event({"none", "mouse_move", mouse_motion});
@@ -337,6 +342,19 @@ int main()
                 {"y", 10}
             }},
             {"font_size", 20}
+        });
+
+        image = Xrender_push_image({
+            {"path", "Background.png"},
+            {"angle", 0},
+            {"position", {
+                {"x", 0},
+                {"y", 0}
+            }},
+            {"size", {
+                {"width", 2048 / 3},
+                {"height", 780 / 3}
+            }},
         });
 
         /*circle = Xrender_push_circle({

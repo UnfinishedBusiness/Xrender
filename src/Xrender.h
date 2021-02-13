@@ -46,7 +46,7 @@ struct double_line_t{
 };
 struct Xrender_object_t{
     nlohmann::json data;
-    //SDL_Texture* texture;
+    GLuint texture;
     void (*mouse_callback)(Xrender_object_t*, nlohmann::json);
     nlohmann::json (*matrix_data)(nlohmann::json);
 };

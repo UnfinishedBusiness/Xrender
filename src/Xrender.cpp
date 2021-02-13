@@ -12,6 +12,8 @@
 #include <gui/imgui_impl_glfw.h>
 #include <gui/imgui_impl_opengl2.h>
 #include <fonts/Sans.ttf.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <gui/stb_image.h>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -53,6 +55,40 @@ vector<Xrender_key_event_t> key_events;
 vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
+
+bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
+{
+    // Load from file
+    int image_width = 0;
+    int image_height = 0;
+    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
+    if (image_data == NULL)
+        return false;
+
+    // Create a OpenGL texture identifier
+    GLuint image_texture;
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+
+    // Setup filtering parameters for display
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+
+    // Upload pixels into texture
+    #if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    #endif
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    stbi_image_free(image_data);
+
+    *out_texture = image_texture;
+    *out_width = image_width;
+    *out_height = image_height;
+
+    return true;
+}
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -216,7 +252,7 @@ static void Xrender_mouse_button_callback(GLFWwindow* window, int button, int ac
 }
 static void Xrender_cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    double_point_t m = {xpos - ((double)core->data["window_width"] / 2.0f), ((double)core->data["window_height"] - ypos) - ((double)core->data["window_height"] / 2.0f)};
+    double_point_t m = Xrender_get_current_mouse_position();
     for (int x = 0; x < key_events.size(); x++)
     {
         if (key_events[x].type == "mouse_move")
@@ -330,6 +366,13 @@ bool Xrender_init(nlohmann::json i)
     {
         glfwSetInputMode(core->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
+    if (core->data["maximize"] == true)
+    {
+        glfwMaximizeWindow(core->window);
+    }
+    //glEnable(GL_BLEND);
+    //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_DEPTH_TEST);
     Xrender_tick();
 	return success;
 }
@@ -441,54 +484,6 @@ bool Xrender_tick()
     });
     for (int x = 0; x < object_stack.size(); x++)
     {
-        if (object_stack[x]->data["visable"] == true) //Texture re-gen
-        {
-            /*if (object_stack[x]->texture == NULL) //We need to render the texture!
-            {
-                if (object_stack[x]->data["type"] == "text")
-                {
-                    TTF_Font* f;
-                    if (object_stack[x]->data["font"] == "default")
-                    {
-                        f = TTF_OpenFontRW(SDL_RWFromConstMem(Sans_ttf,sizeof(Sans_ttf)), 1, object_stack[x]->data["font_size"]);
-                    }
-                    else
-                    {
-                        f = TTF_OpenFont(string(object_stack[x]->data["font"]).c_str(), object_stack[x]->data["font_size"]);
-                    }
-                    if (f)
-                    {
-                        SDL_Color color = {object_stack[x]->data["color"]["r"], object_stack[x]->data["color"]["g"], object_stack[x]->data["color"]["b"]};
-                        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(f, string(object_stack[x]->data["textval"]).c_str(), color);
-                        //SDL_DestroyTexture(ObjectStack[x].texture);
-                        object_stack[x]->texture = SDL_CreateTextureFromSurface(core->gRenderer, surfaceMessage);
-                        SDL_FreeSurface(surfaceMessage);
-                        TTF_CloseFont(f);
-                    }
-                    else
-                    {
-                        printf("Could not render text!\n");
-                    }
-                }
-                if (object_stack[x]->data["type"] == "image")
-                {
-                    SDL_Surface* loadedSurface = IMG_Load(string(object_stack[x]->data["path"]).c_str());
-                    if( loadedSurface == NULL )
-                    {
-                        printf( "Unable to load image %s! SDL_image Error: %s\n", string(object_stack[x]->data["path"]).c_str(), IMG_GetError() );
-                    }
-                    else
-                    {
-                        object_stack[x]->texture = SDL_CreateTextureFromSurface( core->gRenderer, loadedSurface );
-                        if( object_stack[x]->texture == NULL )
-                        {
-                            printf( "Unable to create texture from %s! SDL Error: %s\n", string(object_stack[x]->data["path"]).c_str(), SDL_GetError() );
-                        }
-                        SDL_FreeSurface( loadedSurface );
-                    }
-                }
-            }*/
-        }
         if (object_stack[x]->data["visable"] == true)
         {
             //printf("(Rendering %d) %s\n", x, object_stack[x]->data.dump().c_str());
@@ -500,6 +495,49 @@ bool Xrender_tick()
             else
             {
                 data = object_stack[x]->matrix_data(object_stack[x]->data);
+            }
+            if (object_stack[x]->data["type"] == "image")
+            {
+                if (object_stack[x]->texture == -1)
+                {
+                    int my_image_width = 0;
+                    int my_image_height = 0;
+                    GLuint my_image_texture = 0;
+                    bool ret = LoadTextureFromFile(string(object_stack[x]->data["path"]).c_str(), &object_stack[x]->texture, &my_image_width, &my_image_height);
+                    if (ret)
+                    {
+                        //printf("Loaded image %s, width: %d, height: %d\n", string(object_stack[x]->data["path"]).c_str(), my_image_width, my_image_height);
+                        object_stack[x]->data["image_width"] = my_image_width;
+                        object_stack[x]->data["image_height"] = my_image_height;
+                        if (object_stack[x]->data["size"]["width"] == 0 && object_stack[x]->data["size"]["height"] == 0)
+                        {
+                            object_stack[x]->data["size"]["width"] = my_image_width;
+                            object_stack[x]->data["size"]["height"] = my_image_height;
+                        }
+                    }
+                    else
+                    {
+                        printf("Could not load image!\n");
+                        object_stack[x]->texture = -1;
+                    }
+                }
+
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+                glPushMatrix();
+                glTranslatef((double)object_stack[x]->data["position"]["x"], (double)object_stack[x]->data["position"]["y"], 0.0);
+                glRotatef((double)object_stack[x]->data["angle"] - 180, 0.0, 0.0, 1.0);
+                double imgWidth, imgHeight;
+                imgWidth = (double)object_stack[x]->data["size"]["width"];
+                imgHeight = (double)object_stack[x]->data["size"]["height"];
+                glBindTexture(GL_TEXTURE_2D, object_stack[x]->texture);
+                glEnable(GL_TEXTURE_2D);
+                glBegin(GL_QUADS);
+                    glTexCoord2f(0, 0); glVertex2f(-imgWidth, -imgHeight);
+                    glTexCoord2f(1, 0); glVertex2f(imgWidth, -imgHeight);
+                    glTexCoord2f(1,1);  glVertex2f(imgWidth, imgHeight);
+                    glTexCoord2f(0, 1); glVertex2f(-imgWidth, imgHeight);
+                glEnd();
+                glPopMatrix();
             }
             if (object_stack[x]->data["type"] == "line")
             {
@@ -612,26 +650,6 @@ bool Xrender_tick()
                     }
                 }
                 //roundedBoxRGBA(core->gRenderer, (double)data["tl"]["x"], (double)core->data["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)core->data["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-            }
-            else
-            {
-                /*dst.x = object_stack[x]->data["position"]["x"];
-                dst.y = (int)core->data["window_height"] - (int)object_stack[x]->data["position"]["y"];
-                if (object_stack[x]->data["size"]["width"] > 0 && object_stack[x]->data["size"]["height"] > 0)
-                {
-                    dst.w = object_stack[x]->data["size"]["width"];
-                    dst.h = object_stack[x]->data["size"]["height"];
-                }
-                else
-                {
-                    SDL_QueryTexture(object_stack[x]->texture, NULL, NULL, &dst.w, &dst.h);
-                    object_stack[x]->data["size"]["width"] = dst.w;
-                    object_stack[x]->data["size"]["height"] = dst.h;
-                }
-                dst.y -= (int)object_stack[x]->data["size"]["height"];
-                SDL_SetTextureBlendMode( object_stack[x]->texture, SDL_BLENDMODE_BLEND );
-                SDL_SetTextureAlphaMod( object_stack[x]->texture, object_stack[x]->data["color"]["a"] );
-                SDL_RenderCopyEx( core->gRenderer, object_stack[x]->texture, NULL, &dst, object_stack[x]->data["angle"], NULL, SDL_FLIP_NONE);*/
             }
         }
     }
