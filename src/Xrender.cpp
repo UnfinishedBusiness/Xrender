@@ -14,6 +14,8 @@
 #include <fonts/Sans.ttf.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <gui/stb_image.h>
+#define STB_TRUETYPE_IMPLEMENTATION
+#include <gui/stb_truetype.h>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -56,7 +58,60 @@ vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
 
-bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
+void Xrender_RenderFont(float pos_x, float pos_y, std::string text, Xrender_object_t *o)
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, o->texture);
+    glBegin(GL_QUADS);
+    for (int x = 0; x < text.size(); x++)
+    {
+        if (text[x] >=32 && text[x] < 128)
+        {
+            stbtt_aligned_quad q;
+            stbtt_GetBakedQuad(o->cdata, 512,512, text[x]-32, &pos_x,&pos_y,&q,1);//1=opengl & d3d10+,0=d3d9
+            glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,q.y0);
+            glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,q.y0);
+            glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y1);
+            glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y1);
+        }
+    }
+   glEnd();
+}
+
+bool Xrender_InitFontFromFile(const char* filename, int font_size, Xrender_object_t *o)
+{
+    unsigned char temp_bitmap[512*512];
+    unsigned char ttf_buffer[1<<20];
+    FILE *fp;
+    if (string(filename) == "default")
+    {
+        for (int x = 0; x < (1<<20); x++)
+        {
+            //ttf_buffer[x] = Sans_ttf[x];
+        }
+    }
+    else
+    {
+        fp = fopen(string(filename).c_str(), "rb");
+        if (fp)
+        {
+            fread(ttf_buffer, 1, 1<<20, fp);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    stbtt_BakeFontBitmap(ttf_buffer,0, (float)font_size, temp_bitmap ,512,512, 32,96, o->cdata); // no guarantee this fits!
+    glGenTextures(1, &o->texture);
+    glBindTexture(GL_TEXTURE_2D, o->texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 512,512, 0, GL_ALPHA, GL_UNSIGNED_BYTE, temp_bitmap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    fclose(fp);
+    return true;
+}
+
+bool Xrender_ImageToTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
 {
     // Load from file
     int image_width = 0;
@@ -495,6 +550,25 @@ bool Xrender_tick()
             {
                 data = object_stack[x]->matrix_data(object_stack[x]->data);
             }
+            if (object_stack[x]->data["type"] == "font")
+            {
+                if (object_stack[x]->texture == -1)
+                {
+                    bool ret = Xrender_InitFontFromFile(string(object_stack[x]->data["font"]).c_str(), (int)object_stack[x]->data["font_size"], object_stack[x]);
+                    if (ret == false)
+                    {
+                        printf("Could not init font: %s\n", string(object_stack[x]->data["font"]).c_str());
+                    }
+                    else
+                    {
+                        printf("Font loaded successfully!\n");
+                    }
+                }
+                else
+                {
+                    //Xrender_RenderFont((float)object_stack[x]->data["position"]["x"], (float)object_stack[x]->data["position"]["y"], string(object_stack[x]->data["textval"]), object_stack[x]);
+                }
+            }
             if (object_stack[x]->data["type"] == "image")
             {
                 if (object_stack[x]->texture == -1)
@@ -502,7 +576,7 @@ bool Xrender_tick()
                     int my_image_width = 0;
                     int my_image_height = 0;
                     GLuint my_image_texture = 0;
-                    bool ret = LoadTextureFromFile(string(object_stack[x]->data["path"]).c_str(), &object_stack[x]->texture, &my_image_width, &my_image_height);
+                    bool ret = Xrender_ImageToTextureFromFile(string(object_stack[x]->data["path"]).c_str(), &object_stack[x]->texture, &my_image_width, &my_image_height);
                     if (ret)
                     {
                         //printf("Loaded image %s, width: %d, height: %d\n", string(object_stack[x]->data["path"]).c_str(), my_image_width, my_image_height);

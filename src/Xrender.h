@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <json/json.h>
+#include <gui/stb_truetype.h>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -47,6 +48,7 @@ struct double_line_t{
 struct Xrender_object_t{
     nlohmann::json data;
     GLuint texture;
+    stbtt_bakedchar cdata[96];
     void (*mouse_callback)(Xrender_object_t*, nlohmann::json);
     nlohmann::json (*matrix_data)(nlohmann::json);
 };
@@ -56,6 +58,20 @@ extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;
 extern std::vector<Xrender_timer_t> timers;
 extern std::vector<Xrender_gui_t*> gui_stack;
+
+/*
+    Renders font of specified text
+*/
+void Xrender_RenderFont(float pos_x, float pos_y, std::string text, Xrender_object_t *o);
+/*
+    Reads an ttf from file and creates a texture with the chars renderered to it
+*/
+bool Xrender_InitFontFromFile(const char* filename, int font_size, Xrender_object_t *o);
+
+/*
+    Reads an image from file and creates a texture
+*/
+bool Xrender_ImageToTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height);
 
 
 /*

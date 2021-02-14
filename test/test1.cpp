@@ -337,6 +337,7 @@ int main()
 
         performance_label = Xrender_push_text({
             {"textval", "0"},
+            {"font", "./Sans.ttf"},
             {"position", {
                 {"x", 10},
                 {"y", 10}
