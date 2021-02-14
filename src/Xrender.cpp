@@ -453,8 +453,12 @@ bool Xrender_tick()
     ratio = window_width / (float) window_height;
     core->data["window_width"] = window_width;
     core->data["window_height"] = window_height;
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthRange(0, 1);
+    glDepthFunc(GL_LEQUAL);
     glClearColor((float)core->data["clear_color"]["r"] / 255, (float)core->data["clear_color"]["g"] / 255, (float)core->data["clear_color"]["b"] / 255, (float)core->data["clear_color"]["a"] / 255);
     ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -516,12 +520,11 @@ bool Xrender_tick()
                         object_stack[x]->texture = -1;
                     }
                 }
-                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+                glColor4f((double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255);
                 glPushMatrix();
-                    //glEnable(GL_ALPHA_TEST);
-                    //glAlphaFunc(GL_GREATER, 0.1);
                     glTranslatef((double)object_stack[x]->data["position"]["x"], (double)object_stack[x]->data["position"]["y"], 0.0);
-                    glRotatef((double)object_stack[x]->data["angle"] - 180, 0.0, 0.0, 1.0);
+                    glRotatef((double)object_stack[x]->data["angle"], 0.0, 0.0, 1.0);
+                    glScalef(1.0f, -1.0f, 1.0f);
                     double imgWidth = (double)object_stack[x]->data["size"]["width"];
                     double imgHeight = (double)object_stack[x]->data["size"]["height"];
                     glBindTexture(GL_TEXTURE_2D, object_stack[x]->texture);

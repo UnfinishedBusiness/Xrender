@@ -142,7 +142,7 @@ void plus_key(nlohmann::json e)
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
-    //image->data["angle"] = (double)image->data["angle"] + 1;
+    image->data["color"]["a"] = (double)image->data["color"]["a"] + 1;
 }
 void minus_key(nlohmann::json e)
 {
@@ -155,7 +155,7 @@ void minus_key(nlohmann::json e)
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
-    //image->data["angle"] = (double)image->data["angle"] - 1;
+    image->data["color"]["a"] = (double)image->data["color"]["a"] - 1;
 }
 void up(nlohmann::json e)
 {
@@ -348,7 +348,7 @@ int main()
             {"path", "LineWork.png"},
             {"zindex", 10},
             {"angle", 0},
-            {"visable", false},
+            {"visable", true},
             {"position", {
                 {"x", 0},
                 {"y", 0}
@@ -356,6 +356,12 @@ int main()
             {"size", {
                 {"width", 2048 / 3},
                 {"height", 780 / 3}
+            }},
+            {"color", {
+                {"r", 255},
+                {"g", 255},
+                {"b", 255},
+                {"a", 150},
             }},
         });
 
