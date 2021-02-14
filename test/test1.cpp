@@ -345,7 +345,7 @@ int main()
         });
 
         image = Xrender_push_image({
-            {"path", "Background.png"},
+            {"path", "LineWork.png"},
             {"zindex", 10},
             {"angle", 0},
             {"visable", false},
