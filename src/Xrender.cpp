@@ -418,6 +418,8 @@ bool Xrender_init(nlohmann::json i)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = string(core->data["log_file_name"]).c_str();
+    io.LogFilename = string(core->data["ini_file_name"]).c_str();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     ImGui::StyleColorsLight();
     //ImGui::StyleColorsClassic();
