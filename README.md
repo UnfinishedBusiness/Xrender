@@ -1,2 +1,4 @@
 # Xrender
-Rendering library that uses SDL under the hood but boils down the more complex stuff into a simple to use library
+A cross-platform Rendering library that uses GLFW and OpenGL under the hood. Includes ImGUi, DXF reading/writing, a rich geometry engine, json, an STK500 module for writing intel hex files to micro-controllers with optiboot boot loader, etc. This library is intented to supercede Xkernel (Basically most of what this library will do but was meant to run JavaScript code...). ncPilot (CNC control software for my companies Gen3 Motion Controller), JetCAM (CNC Plasma & Waterjet CAM software), and JetCAD are all written in Javascript and executed using the Xkernel VM. This library will be used to re-code all three of those programs and made them more portable so Xkernel won't be needed to run them. Also makes self-updating and binary distrabutables easier because an installation wizard isn't needed anymore...
+
+
