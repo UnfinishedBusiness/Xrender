@@ -9,6 +9,7 @@
 
 #include "http/httplib.h"
 
+Xrender_core_t *Xcore;
 TextEditor editor;
 static float progress = 0.0f;
 Xrender_gui_t *menu_bar;
@@ -99,10 +100,9 @@ nlohmann::json dxf_matrix(nlohmann::json data)
 }
 bool test_timer()
 {
-    performance_label->data["textval"] = to_string(1000.0f / (float)Xrender_get_performance());
-    performance_label->data["size"]["width"] = 0;
-    performance_label->data["size"]["height"] = 0;
-    Xrender_rebuild_object(performance_label);
+    performance_label->data["textval"] = to_string((int)(1000.0f / (float)Xrender_get_performance()));
+    performance_label->data["position"]["x"] = -((float)Xcore->data["window_width"] / 2.0f) + 10;
+    performance_label->data["position"]["y"] = -((float)Xcore->data["window_height"] / 2.0f) + 10;
     return true;
 }
 void handle_dxf(nlohmann::json dxf, int x, int n)
@@ -142,7 +142,8 @@ void plus_key(nlohmann::json e)
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
-    image->data["color"]["a"] = (double)image->data["color"]["a"] + 1;
+    //image->data["color"]["a"] = (double)image->data["color"]["a"] + 1;
+    performance_label->data["color"]["a"] = (double)performance_label->data["color"]["a"] + 1;
 }
 void minus_key(nlohmann::json e)
 {
@@ -155,7 +156,7 @@ void minus_key(nlohmann::json e)
     double scalechange = old_zoom - zoom;
     pan.x += mouse_pos_in_matrix_coordinates.x * scalechange;
     pan.y += mouse_pos_in_matrix_coordinates.y * scalechange;
-    image->data["color"]["a"] = (double)image->data["color"]["a"] - 1;
+    performance_label->data["color"]["a"] = (double)performance_label->data["color"]["a"] - 1;
 }
 void up(nlohmann::json e)
 {
@@ -319,11 +320,10 @@ void _editor_window()
 int main()
 {
     Geometry g;
-    Xrender_core_t *core;
     printf("App Config Dir = %s\n", Xrender_get_config_dir("test1").c_str());
-    if (Xrender_init({{"window_title", "Test1"}, {"maximize", true}, {"clear_color", { {"r", 0}, {"g", 51}, {"b", 102}, {"a", 255}}}}))
+    if (Xrender_init({{"window_title", "Test1"}, {"maximize", false}, {"clear_color", { {"r", 0}, {"g", 51}, {"b", 102}, {"a", 255}}}}))
     {
-        core = Xrender_get_core_variables();
+        Xcore = Xrender_get_core_variables();
         Xrender_push_key_event({"up", "scroll", plus_key});
         Xrender_push_key_event({"down", "scroll", minus_key});
         Xrender_push_key_event({"none", "mouse_move", mouse_motion});
@@ -336,16 +336,23 @@ int main()
         editor.SetLanguageDefinition(lang);
 
         performance_label = Xrender_push_text({
-            {"textval", "0"},
-            {"font", "./Sans.ttf"},
+            {"textval", "Text Test"},
+            {"font", "default"},
             {"position", {
-                {"x", 10},
-                {"y", 10}
+                {"x", -10000},
+                {"y", -10000}
             }},
-            {"font_size", 20}
+            {"font_size", 50},
+            {"angle", 0},
+            {"color", {
+                {"r", 255},
+                {"g", 255},
+                {"b", 255},
+                {"a", 255},
+            }},
         });
 
-        image = Xrender_push_image({
+        /*image = Xrender_push_image({
             {"path", "LineWork.png"},
             {"zindex", 10},
             {"angle", 0},
@@ -364,7 +371,7 @@ int main()
                 {"b", 255},
                 {"a", 150},
             }},
-        });
+        });*/
 
         /*circle = Xrender_push_circle({
             {"center", {

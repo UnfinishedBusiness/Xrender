@@ -61,21 +61,27 @@ vector<Xrender_gui_t*> gui_stack;
 void Xrender_RenderFont(float pos_x, float pos_y, std::string text, Xrender_object_t *o)
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, o->texture);
-    glBegin(GL_QUADS);
-    for (int x = 0; x < text.size(); x++)
-    {
-        if (text[x] >=32 && text[x] < 128)
-        {
-            stbtt_aligned_quad q;
-            stbtt_GetBakedQuad(o->cdata, 512,512, text[x]-32, &pos_x,&pos_y,&q,1);//1=opengl & d3d10+,0=d3d9
-            glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,q.y0);
-            glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,q.y0);
-            glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y1);
-            glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y1);
-        }
-    }
-   glEnd();
+        glBindTexture(GL_TEXTURE_2D, o->texture);
+        glPushMatrix();
+            glColor4f((double)o->data["color"]["r"] / 255, (double)o->data["color"]["g"] / 255, (double)o->data["color"]["b"] / 255, (double)o->data["color"]["a"] / 255);
+            glRotatef((double)o->data["angle"], 0.0, 0.0, 1.0);
+            glBegin(GL_QUADS);
+            for (int x = 0; x < text.size(); x++)
+            {
+                if (text[x] >=32 && text[x] < 128)
+                {
+                    stbtt_aligned_quad q;
+                    stbtt_GetBakedQuad(o->cdata, 512,512, text[x]-32, &pos_x,&pos_y,&q,1);
+                    glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,-q.y1);
+                    glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,-q.y1);
+                    glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,-q.y0);
+                    glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,-q.y0);
+                }
+            }
+            glEnd();
+        glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+    glFlush();
 }
 
 bool Xrender_InitFontFromFile(const char* filename, int font_size, Xrender_object_t *o)
@@ -87,7 +93,7 @@ bool Xrender_InitFontFromFile(const char* filename, int font_size, Xrender_objec
     {
         for (int x = 0; x < (1<<20); x++)
         {
-            //ttf_buffer[x] = Sans_ttf[x];
+            ttf_buffer[x] = Sans_ttf[x];
         }
     }
     else
@@ -550,7 +556,7 @@ bool Xrender_tick()
             {
                 data = object_stack[x]->matrix_data(object_stack[x]->data);
             }
-            if (object_stack[x]->data["type"] == "font")
+            if (object_stack[x]->data["type"] == "text")
             {
                 if (object_stack[x]->texture == -1)
                 {
@@ -558,15 +564,12 @@ bool Xrender_tick()
                     if (ret == false)
                     {
                         printf("Could not init font: %s\n", string(object_stack[x]->data["font"]).c_str());
-                    }
-                    else
-                    {
-                        printf("Font loaded successfully!\n");
+                        object_stack[x]->texture = -1;
                     }
                 }
                 else
                 {
-                    //Xrender_RenderFont((float)object_stack[x]->data["position"]["x"], (float)object_stack[x]->data["position"]["y"], string(object_stack[x]->data["textval"]), object_stack[x]);
+                    Xrender_RenderFont((float)object_stack[x]->data["position"]["x"], -(float)object_stack[x]->data["position"]["y"], string(object_stack[x]->data["textval"]), object_stack[x]);
                 }
             }
             if (object_stack[x]->data["type"] == "image")
@@ -594,24 +597,27 @@ bool Xrender_tick()
                         object_stack[x]->texture = -1;
                     }
                 }
-                glColor4f((double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255);
-                glPushMatrix();
-                    glTranslatef((double)object_stack[x]->data["position"]["x"], (double)object_stack[x]->data["position"]["y"], 0.0);
-                    glRotatef((double)object_stack[x]->data["angle"], 0.0, 0.0, 1.0);
-                    glScalef(1.0f, -1.0f, 1.0f);
-                    double imgWidth = (double)object_stack[x]->data["size"]["width"];
-                    double imgHeight = (double)object_stack[x]->data["size"]["height"];
-                    glBindTexture(GL_TEXTURE_2D, object_stack[x]->texture);
-                    glEnable(GL_TEXTURE_2D);
-                        glBegin(GL_QUADS);
-                            glTexCoord2f(0, 0); glVertex2f(-imgWidth, -imgHeight);
-                            glTexCoord2f(1, 0); glVertex2f(imgWidth, -imgHeight);
-                            glTexCoord2f(1,1);  glVertex2f(imgWidth, imgHeight);
-                            glTexCoord2f(0, 1); glVertex2f(-imgWidth, imgHeight);
-                        glEnd();
-                    glDisable(GL_TEXTURE_2D);
-                    glFlush();
-                glPopMatrix();
+                else
+                {
+                    glColor4f((double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255);
+                    glPushMatrix();
+                        glTranslatef((double)object_stack[x]->data["position"]["x"], (double)object_stack[x]->data["position"]["y"], 0.0);
+                        glRotatef((double)object_stack[x]->data["angle"], 0.0, 0.0, 1.0);
+                        glScalef(1.0f, -1.0f, 1.0f);
+                        double imgWidth = (double)object_stack[x]->data["size"]["width"];
+                        double imgHeight = (double)object_stack[x]->data["size"]["height"];
+                        glBindTexture(GL_TEXTURE_2D, object_stack[x]->texture);
+                        glEnable(GL_TEXTURE_2D);
+                            glBegin(GL_QUADS);
+                                glTexCoord2f(0, 0); glVertex2f(-imgWidth, -imgHeight);
+                                glTexCoord2f(1, 0); glVertex2f(imgWidth, -imgHeight);
+                                glTexCoord2f(1,1);  glVertex2f(imgWidth, imgHeight);
+                                glTexCoord2f(0, 1); glVertex2f(-imgWidth, imgHeight);
+                            glEnd();
+                        glDisable(GL_TEXTURE_2D);
+                        glFlush();
+                    glPopMatrix();
+                }
             }
             if (object_stack[x]->data["type"] == "line")
             {
