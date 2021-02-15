@@ -497,6 +497,87 @@ void render_arc(double cx, double cy, double radius, double start_angle, double 
         glEnd();
     }
 }
+void render_convex_polygon(vector<double_point_t> points)
+{
+    if (points.size() > 2)
+    {
+        for (int x = 2; x < points.size(); x+= 2)
+        {
+            glBegin(GL_TRIANGLES);
+                glVertex2f(points[0].x, points[0].y);
+                glVertex2f(points[x-1].x, points[x-1].y);
+                glVertex2f(points[x].x, points[x].y);
+            glEnd();
+        }
+        glBegin(GL_TRIANGLES);
+            glVertex2f(points[0].x, points[0].y);
+            glVertex2f(points[points.size() -2].x, points[points.size() -2].y);
+            glVertex2f(points[points.size() -1].x, points[points.size()-1].y);
+        glEnd();
+    }
+}
+void render_rectangle_with_radius(float x, float y, float width, float height, float radius = 0.0)
+{
+    #define ROUNDING_POINT_COUNT 8
+    double_point_t top_left[ROUNDING_POINT_COUNT];
+    double_point_t bottom_left[ROUNDING_POINT_COUNT];
+    double_point_t top_right[ROUNDING_POINT_COUNT];
+    double_point_t bottom_right[ROUNDING_POINT_COUNT];
+    if( radius == 0.0 )
+    {
+        radius = min(width, height);
+        radius *= 0.00001;
+    }
+    int i = 0;
+    float x_offset, y_offset;
+    float step = ( 2.0f * 3.14159265359 ) / (ROUNDING_POINT_COUNT * 4), angle = 0.0f;
+    unsigned int index = 0, segment_count = ROUNDING_POINT_COUNT;
+    double_point_t bottom_left_corner = { x + radius, y - height + radius }; 
+    while( i != segment_count )
+    {
+        x_offset = cosf( angle );
+        y_offset = sinf( angle );
+        top_left[index].x = bottom_left_corner.x - (x_offset * radius);
+        top_left[index].y = (height - (radius * 2.0f)) + bottom_left_corner.y - (y_offset * radius);
+        top_right[index].x = (width - (radius * 2.0f)) + bottom_left_corner.x + (x_offset * radius);
+        top_right[index].y = (height - (radius * 2.0f)) + bottom_left_corner.y -(y_offset * radius);
+        bottom_right[index].x = (width - (radius * 2.0f)) + bottom_left_corner.x + (x_offset * radius);
+        bottom_right[index].y = bottom_left_corner.y + (y_offset * radius);
+        bottom_left[index].x = bottom_left_corner.x - (x_offset * radius);
+        bottom_left[index].y = bottom_left_corner.y + (y_offset * radius);
+        top_left[index].x = top_left[index].x;
+        top_left[index].y = top_left[index].y;
+        top_right[index].x = top_right[index].x;
+        top_right[index].y = top_right[index].y;
+        bottom_right[index].x = bottom_right[index].x;
+        bottom_right[index].y = bottom_right[index].y;
+        bottom_left[index].x = bottom_left[index].x;
+        bottom_left[index].y = bottom_left[index].y;
+        angle -= step;
+        ++index;
+        ++i;
+    }
+    glBegin( GL_TRIANGLE_STRIP );
+    {
+        for( i = segment_count - 1 ; i >= 0 ; i--)
+        {
+            glVertex2f( top_left[ i ].x, top_left[ i ].y );
+            glVertex2f( top_right[ i ].x, top_right[ i ].y );
+        }
+        glVertex2f( top_right[ 0 ].x, top_right[ 0 ].y );
+        glVertex2f( top_right[ 0 ].x, top_right[ 0 ].y );
+        glVertex2f( top_right[ 0 ].x, top_right[ 0 ].y );
+        glVertex2f( top_left[ 0 ].x, top_left[ 0 ].y );
+        glVertex2f( bottom_right[ 0 ].x, bottom_right[ 0 ].y );
+        glVertex2f( bottom_left[ 0 ].x, bottom_left[ 0 ].y );
+        for( i = 0; i != segment_count ; i++ )
+        {
+            glVertex2f( bottom_right[ i ].x, bottom_right[ i ].y );    
+            glVertex2f( bottom_left[ i ].x, bottom_left[ i ].y );                                    
+        }    
+    }
+    glEnd();
+}
 double_point_t Xrender_get_current_mouse_position()
 {
     double mouseX, mouseY;
@@ -640,21 +721,20 @@ bool Xrender_tick()
                         }
                     }
                 }
-                if (object_stack[x]->data["width"] == 1)
+                glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
+                glLineWidth((float)data["width"]);
+                if (data["style"] == "dashed")
                 {
-                    //aalineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->data["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->data["window_height"] - (double)data["end"]["y"], (double)data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                    //SDL_SetRenderDrawColor(core->gRenderer, data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                    //SDL_RenderDrawLine(core->gRenderer, (double)data["start"]["x"], (double)core->data["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->data["window_height"] - (double)data["end"]["y"]);
-                    glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
-                    glBegin(GL_LINES);
-                        glVertex3f((double)data["start"]["x"], (double)data["start"]["y"], 0);
-                        glVertex3f((double)data["end"]["x"], (double)data["end"]["y"], 0);
-                    glEnd();
+                    glPushAttrib(GL_ENABLE_BIT);
+                    glLineStipple(10, 0xAAAA);
+                    glEnable(GL_LINE_STIPPLE);
                 }
-                else
-                {
-                    //thickLineRGBA(core->gRenderer, (double)data["start"]["x"], (double)core->data["window_height"] - (double)data["start"]["y"], (double)data["end"]["x"], (double)core->data["window_height"] -  (double)data["end"]["y"], data["width"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
-                }
+                glBegin(GL_LINES);
+                    glVertex3f((double)data["start"]["x"], (double)data["start"]["y"], 0);
+                    glVertex3f((double)data["end"]["x"], (double)data["end"]["y"], 0);
+                glEnd();
+                glLineWidth(1);
+                glDisable(GL_LINE_STIPPLE);
             }
             else if (object_stack[x]->data["type"] == "arc")
             {
@@ -678,11 +758,18 @@ bool Xrender_tick()
                             object_stack[x]->data["mouse_over"] = false;
                         }
                     }
-                    //printf("start_angle: %.4f, end_angle: %.4f\n", (double)data["start_angle"], (double)data["end_angle"]);
                 }
-                //arcRGBA(core->gRenderer, (double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
                 glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
+                glLineWidth((float)data["width"]);
+                if (data["style"] == "dashed")
+                {
+                    glPushAttrib(GL_ENABLE_BIT);
+                    glLineStipple(10, 0xAAAA);
+                    glEnable(GL_LINE_STIPPLE);
+                }
                 render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], (double)data["start_angle"], (double)data["end_angle"]);
+                glLineWidth(1);
+                glDisable(GL_LINE_STIPPLE);
             }
             else if (object_stack[x]->data["type"] == "circle")
             {
@@ -706,13 +793,24 @@ bool Xrender_tick()
                         }
                     }
                 }
-                //aacircleRGBA(core->gRenderer, (double)data["center"]["x"], (double)core->data["window_height"] - (double)data["center"]["y"], (double)data["radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
+                glLineWidth((float)data["width"]);
+                if (data["style"] == "dashed")
+                {
+                    glPushAttrib(GL_ENABLE_BIT);
+                    glLineStipple(10, 0xAAAA);
+                    glEnable(GL_LINE_STIPPLE);
+                }
+                render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], 0, 180);
+                render_arc((double)data["center"]["x"], (double)data["center"]["y"], (double)data["radius"], 180, 360);
+                glLineWidth(1);
+                glDisable(GL_LINE_STIPPLE);
             }
             else if (object_stack[x]->data["type"] == "box")
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    if (m.x > (int)data["tl"]["x"] && m.x < (int)data["br"]["x"] && m.y > (int)data["tl"]["y"] && m.y < (int)data["br"]["y"])
+                    if (m.x > (double)data["tl"]["x"] && m.x < (double)data["br"]["x"] && m.y > (double)data["br"]["y"] && m.y < (double)data["tl"]["y"])
                     {
                         if (object_stack[x]->data["mouse_over"] == false)
                         {
@@ -729,7 +827,8 @@ bool Xrender_tick()
                         }
                     }
                 }
-                //roundedBoxRGBA(core->gRenderer, (double)data["tl"]["x"], (double)core->data["window_height"] - (double)data["tl"]["y"], (double)data["br"]["x"], (double)core->data["window_height"] - (double)data["br"]["y"], (double)data["corner_radius"], data["color"]["r"], data["color"]["g"], data["color"]["b"], data["color"]["a"]);
+                glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
+                render_rectangle_with_radius((double)data["tl"]["x"], (double)data["tl"]["y"], ((double)data["br"]["x"] - (double)data["tl"]["x"]), -((double)data["br"]["y"] - (double)data["tl"]["y"]), (double)data["radius"]);
             }
         }
     }

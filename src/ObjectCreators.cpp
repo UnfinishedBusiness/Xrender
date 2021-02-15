@@ -137,6 +137,10 @@ Xrender_object_t *Xrender_push_line(nlohmann::json line)
     {
         o->data["width"] = 1;
     }
+    if (!o->data.contains("style"))
+    {
+        o->data["style"] = "solid";
+    }
     if (!o->data.contains("size"))
     {
         o->data["size"] = {
@@ -259,6 +263,10 @@ Xrender_object_t *Xrender_push_arc(nlohmann::json arc)
     {
         o->data["width"] = 1;
     }
+    if (!o->data.contains("style"))
+    {
+        o->data["style"] = "solid";
+    }
     if (!o->data.contains("size"))
     {
         o->data["size"] = {
@@ -311,6 +319,14 @@ Xrender_object_t *Xrender_push_circle(nlohmann::json circle)
     if (!o->data.contains("visable"))
     {
         o->data["visable"] = true;
+    }
+    if (!o->data.contains("style"))
+    {
+        o->data["style"] = "solid";
+    }
+    if (!o->data.contains("width"))
+    {
+        o->data["width"] = 1;
     }
     if (!o->data.contains("size"))
     {

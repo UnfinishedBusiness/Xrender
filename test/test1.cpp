@@ -16,8 +16,10 @@ Xrender_gui_t *menu_bar;
 Xrender_gui_t *progress_window;
 Xrender_gui_t *editor_window;
 Xrender_object_t *performance_label;
+std::vector<int> performance_average;
 Xrender_object_t *circle;
 Xrender_object_t *image;
+Xrender_object_t *box;
 
 serial::Serial serial_port;
 
@@ -54,6 +56,7 @@ void mouse_callback(Xrender_object_t* o,nlohmann::json e)
     }
     if (e["event"] == "left_click_down")
     {
+        printf("%s\n", o->data.dump().c_str());
         if (o->data["type"] == "line")
         {
             printf("Angle: %.4f\n", g.measure_polar_angle({(double)o->data["start"]["x"], (double)o->data["start"]["y"]}, {(double)o->data["end"]["x"], (double)o->data["end"]["y"]}));
@@ -100,9 +103,16 @@ nlohmann::json dxf_matrix(nlohmann::json data)
 }
 bool test_timer()
 {
-    performance_label->data["textval"] = to_string((int)(1000.0f / (float)Xrender_get_performance()));
-    performance_label->data["position"]["x"] = -((float)Xcore->data["window_width"] / 2.0f) + 10;
-    performance_label->data["position"]["y"] = -((float)Xcore->data["window_height"] / 2.0f) + 10;
+    performance_average.push_back((int)(1000.0f / (float)Xrender_get_performance()));
+    if (performance_average.size() > 10)
+    {
+        float avg = 0;
+        for (int x = 0; x < performance_average.size(); x++) avg += performance_average[x];
+        performance_label->data["textval"] = to_string((int)(avg / 10.0f));
+        performance_label->data["position"]["x"] = -((float)Xcore->data["window_width"] / 2.0f) + 10;
+        performance_label->data["position"]["y"] = -((float)Xcore->data["window_height"] / 2.0f) + 10;
+        performance_average.erase(performance_average.begin());
+    }
     return true;
 }
 void handle_dxf(nlohmann::json dxf, int x, int n)
@@ -373,15 +383,34 @@ int main()
             }},
         });*/
 
-        /*circle = Xrender_push_circle({
+        circle = Xrender_push_circle({
             {"center", {
-                {"x", 5},
-                {"y", 5}
+                {"x", 0},
+                {"y", 0}
             }},
-            {"radius", 10}
+            {"radius", 10},
         });
         circle->mouse_callback = mouse_callback;
-        circle->matrix_data = dxf_matrix;*/
+        circle->matrix_data = dxf_matrix;
+
+        box = Xrender_push_box({
+            {"tl", {
+                {"x", 0},
+                {"y", 0}
+            }},
+            {"br", {
+                {"x", 150},
+                {"y", -150}
+            }},
+            {"radius", 10},
+            {"color", {
+                {"r", 100},
+                {"g", 100},
+                {"b", 100},
+                {"a", 150},
+            }},
+        });
+        box->mouse_callback = mouse_callback;
 
         Xrender_push_timer(100, test_timer);
 
