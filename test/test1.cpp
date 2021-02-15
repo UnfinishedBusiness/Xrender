@@ -14,6 +14,7 @@ TextEditor editor;
 static float progress = 0.0f;
 Xrender_gui_t *menu_bar;
 Xrender_gui_t *progress_window;
+Xrender_gui_t *demo_window;
 Xrender_gui_t *editor_window;
 Xrender_object_t *performance_label;
 std::vector<int> performance_average;
@@ -327,6 +328,10 @@ void _editor_window()
 	editor.Render("TextEditor");
     ImGui::End();
 }
+void _demo_window()
+{
+    ImGui::ShowDemoWindow();
+}
 int main()
 {
     Geometry g;
@@ -418,7 +423,9 @@ int main()
 
         progress_window = Xrender_push_gui(false, _progress_window);
 
-        editor_window = Xrender_push_gui(false, _editor_window);
+        editor_window = Xrender_push_gui(true, _editor_window);
+
+        demo_window = Xrender_push_gui(true, _demo_window);
 
         std::vector<serial::PortInfo> devices_found = serial::list_ports();
         std::vector<serial::PortInfo>::iterator iter = devices_found.begin();

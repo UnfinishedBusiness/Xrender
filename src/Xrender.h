@@ -16,6 +16,8 @@ using namespace std;
 
 struct Xrender_core_t{
     nlohmann::json data;
+    char *IniFileName;
+    char *LogFileName;
     GLFWwindow* window;
 };
 

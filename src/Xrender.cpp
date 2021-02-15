@@ -418,8 +418,12 @@ bool Xrender_init(nlohmann::json i)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = string(core->data["log_file_name"]).c_str();
-    io.LogFilename = string(core->data["ini_file_name"]).c_str();
+    core->IniFileName = (char*)malloc(sizeof(char) * strlen(string(core->data["ini_file_name"]).c_str()));
+    strcpy(core->IniFileName, string(core->data["ini_file_name"]).c_str());
+    core->LogFileName = (char*)malloc(sizeof(char) * strlen(string(core->data["log_file_name"]).c_str()));
+    strcpy(core->LogFileName, string(core->data["log_file_name"]).c_str());
+    io.IniFilename = core->IniFileName;
+    io.LogFilename = core->LogFileName;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     ImGui::StyleColorsLight();
     //ImGui::StyleColorsClassic();
