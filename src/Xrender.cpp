@@ -60,6 +60,7 @@ vector<Xrender_gui_t*> gui_stack;
 
 void Xrender_RenderFont(float pos_x, float pos_y, std::string text, Xrender_object_t *o)
 {
+    double width, height = 0;
     glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, o->texture);
         glPushMatrix();
@@ -76,12 +77,18 @@ void Xrender_RenderFont(float pos_x, float pos_y, std::string text, Xrender_obje
                     glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,-q.y1);
                     glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,-q.y0);
                     glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,-q.y0);
+                    width += MAX(q.x0, q.x1) - MIN(q.x0, q.x1);
+                    if ((MAX(q.y0, q.y1) - MIN(q.y0, q.y1)) > height) height = (MAX(q.y0, q.y1) - MIN(q.y0, q.y1));
                 }
             }
             glEnd();
         glPopMatrix();
     glDisable(GL_TEXTURE_2D);
     glFlush();
+    if ((double)o->data["size"]["width"] == 0 || (double)o->data["size"]["height"] == 0)
+    {
+        o->data["size"] = {{"width", width}, {"height", height}};
+    }
 }
 
 bool Xrender_InitFontFromFile(const char* filename, int font_size, Xrender_object_t *o)
@@ -656,7 +663,7 @@ bool Xrender_tick()
                 }
                 else
                 {
-                    Xrender_RenderFont((float)object_stack[x]->data["position"]["x"], -(float)object_stack[x]->data["position"]["y"], string(object_stack[x]->data["textval"]), object_stack[x]);
+                    Xrender_RenderFont((float)data["position"]["x"], -(float)data["position"]["y"], string(data["textval"]), object_stack[x]);
                 }
             }
             if (object_stack[x]->data["type"] == "image")
@@ -688,11 +695,11 @@ bool Xrender_tick()
                 {
                     glColor4f((double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255, (double)object_stack[x]->data["color"]["a"] / 255);
                     glPushMatrix();
-                        glTranslatef((double)object_stack[x]->data["position"]["x"], (double)object_stack[x]->data["position"]["y"], 0.0);
+                        glTranslatef((double)data["position"]["x"], (double)data["position"]["y"], 0.0);
                         glRotatef((double)object_stack[x]->data["angle"], 0.0, 0.0, 1.0);
                         glScalef(1.0f, -1.0f, 1.0f);
-                        double imgWidth = (double)object_stack[x]->data["size"]["width"];
-                        double imgHeight = (double)object_stack[x]->data["size"]["height"];
+                        double imgWidth = (double)data["size"]["width"];
+                        double imgHeight = (double)data["size"]["height"];
                         glBindTexture(GL_TEXTURE_2D, object_stack[x]->texture);
                         glEnable(GL_TEXTURE_2D);
                             glBegin(GL_QUADS);
@@ -876,6 +883,8 @@ void Xrender_close()
     ImGui::DestroyContext();
     glfwDestroyWindow(core->window);
     glfwTerminate();
+    free(core->IniFileName);
+    free(core->LogFileName);
     delete core;
 }
 
