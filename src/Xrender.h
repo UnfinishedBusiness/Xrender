@@ -23,7 +23,7 @@ struct Xrender_core_t{
 
 struct Xrender_key_event_t{
     std::string key;
-    std::string type; //keyup, keydown, scroll, mouse_click, mouse_move
+    std::string type; //keyup, keydown, scroll, mouse_click, mouse_move, window_resize
     void (*callback)(nlohmann::json);
 };
 struct Xrender_gui_t{

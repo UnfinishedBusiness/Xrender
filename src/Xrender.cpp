@@ -349,7 +349,16 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
         }
     }
 }
-
+static void Xrender_window_size_callback(GLFWwindow* window, int width, int height)
+{
+    for (int x = 0; x < key_events.size(); x++)
+    {
+        if (key_events[x].type == "window_resize")
+        {
+            key_events.at(x).callback({{"size",{{"width", width},{"height", height}}}});
+        }
+    }
+}
 Xrender_core_t *Xrender_get_core_variables()
 {
     return core;
@@ -419,6 +428,7 @@ bool Xrender_init(nlohmann::json i)
     glfwSetScrollCallback(core->window, Xrender_scroll_callback);
     glfwSetWindowCloseCallback(core->window, window_close_callback);
     glfwSetCursorPosCallback(core->window, Xrender_cursor_position_callback);
+    glfwSetWindowSizeCallback(core->window, Xrender_window_size_callback);
     glfwMakeContextCurrent(core->window);
     glfwSwapInterval(1); // Enable vsync
     // Setup Dear ImGui context
