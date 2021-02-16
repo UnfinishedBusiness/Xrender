@@ -455,6 +455,7 @@ bool Xrender_init(nlohmann::json i)
         glfwMaximizeWindow(core->window);
     }
     Xrender_tick();
+    Xrender_window_size_callback(core->window, (int)core->data["window_width"], (int)core->data["window_height"]);
 	return success;
 }
 void call_mouse_callback(Xrender_object_t* o, nlohmann::json matrix_data, double mouseX, double mouseY, std::string event) 
