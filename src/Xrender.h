@@ -248,4 +248,5 @@ static void glfw_error_callback(int error, const char* description);
 static void call_mouse_callback(Xrender_object_t* o, nlohmann::json matrix_data, double mouseX, double mouseY, std::string event);
 static void Xrender_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 static void Xrender_cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
+static void Xrender_window_size_callback(GLFWwindow* window, int width, int height);
 #endif
