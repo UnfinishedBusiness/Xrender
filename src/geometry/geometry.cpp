@@ -313,6 +313,23 @@ nlohmann::json Geometry::offset(nlohmann::json path, double offset)
     }
     return ret;
 }
+std::vector<double_point_t> Geometry::simplify(const std::vector<double_point_t> &points, double smoothing)
+{
+    double scale = 100.0f;
+    vector<Point> pointList;
+	vector<Point> pointListOut; //List after simplification
+    vector<double_point_t> out;
+    for (int x = 0; x < points.size(); x++)
+    {
+        pointList.push_back(Point(points[x].x * scale, points[x].y * scale));
+    }
+    this->RamerDouglasPeucker(pointList, smoothing * scale, pointListOut);
+    for (int x = 0; x < pointListOut.size(); x++)
+    {
+        out.push_back({ (double)pointListOut[x].first / scale, (double)pointListOut[x].second / scale});
+    }
+    return out;
+}
 nlohmann::json Geometry::slot(nlohmann::json path, double offset)
 {
     /*

@@ -94,6 +94,12 @@ class Geometry{
         nlohmann::json slot(nlohmann::json path, double offset);
 
         /*
+            Simplify a vector of double_point_t
+                returns the simplified vector
+        */
+        std::vector<double_point_t> simplify(const std::vector<double_point_t> &points, double smoothing);
+
+        /*
             Ramer Douglas Peucker Algorythm for simplifying points
         */
         void RamerDouglasPeucker(const std::vector<Point> &pointList, double epsilon, std::vector<Point> &out);

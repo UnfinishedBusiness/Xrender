@@ -886,8 +886,9 @@ void Xrender_close()
 {
     for (int x = 0; x < object_stack.size(); x++)
     {
-        
+        delete object_stack[x];
     }
+    object_stack.clear();
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
