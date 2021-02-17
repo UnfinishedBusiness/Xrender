@@ -313,7 +313,7 @@ nlohmann::json Geometry::offset(nlohmann::json path, double offset)
     }
     return ret;
 }
-std::vector<double_point_t> Geometry::simplify(const std::vector<double_point_t> &points, double smoothing)
+std::vector<double_point_t> Geometry::simplify(const std::vector<double_point_t> points, double smoothing)
 {
     double scale = 100.0f;
     vector<Point> pointList;

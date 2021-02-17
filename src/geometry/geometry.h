@@ -97,7 +97,7 @@ class Geometry{
             Simplify a vector of double_point_t
                 returns the simplified vector
         */
-        std::vector<double_point_t> simplify(const std::vector<double_point_t> &points, double smoothing);
+        std::vector<double_point_t> simplify(const std::vector<double_point_t> points, double smoothing);
 
         /*
             Ramer Douglas Peucker Algorythm for simplifying points
