@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <cstring>
 #include "hex.h"
 
 bool HexFileRecord::decode()
