@@ -42,7 +42,7 @@ INCLUDES = -I/usr/local/include -I./src/
 CCFLAGS = -g `pkg-config --cflags glfw3`
  
 # compiler
-CCC = g++ -std=c++17 -g
+CCC = g++ -std=gnu++17
  
 # library paths
 LIBS = -L../ -L/usr/local/lib -lm `pkg-config --libs glfw3`
@@ -63,7 +63,7 @@ $(OUT): $(OBJ)
 depend: dep
  
 dep:
-	g++ -std=c++17 -M $(CFLAGS) $(LIBS) $(CCFLAGS) $(INCLUDES) $(SRC)
+	$(CCC) -M $(CFLAGS) $(LIBS) $(CCFLAGS) $(INCLUDES) $(SRC)
  
 clean:
 	rm -f $(OBJ) $(OUT) Makefile.bak
