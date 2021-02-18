@@ -39,7 +39,7 @@ OUT = ./lib/libXrender.a
 INCLUDES = -I/usr/local/include -I./src/
  
 # C++ compiler flags (-g -O2 -Wall)
-CCFLAGS = -g `pkg-config --cflags glfw3` `pkg-config --cflags libpng`
+CCFLAGS = -g `pkg-config --cflags glfw3`
  
 # compiler
 CCC = g++ -std=c++17 -g

@@ -164,6 +164,17 @@ Xrender_object_t *Xrender_push_image(nlohmann::json image);
 Xrender_object_t *Xrender_push_line(nlohmann::json line);
 
 /*
+    Pushes a new path object to the render stack
+        line["path"] = array of x and y points
+        line["width"] = line width - defaults to 1
+        line["color"]["r"] = uint8_t (0-255) red value
+        line["color"]["g"] = uint8_t (0-255) blue value
+        line["color"]["b"] = uint8_t (0-255) green value
+        line["color"]["a"] = uint8_t (0-255) alpha value
+*/
+Xrender_object_t *Xrender_push_path(nlohmann::json path);
+
+/*
     Pushes a new box object to the render stack
         box["tl"]["x"] = Top Left X !required!
         box["tl"]["y"] = Top Left Y !required!

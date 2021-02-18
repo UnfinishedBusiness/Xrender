@@ -177,6 +177,63 @@ Xrender_object_t *Xrender_push_line(nlohmann::json line)
     //printf("(Xrender_push_line) %s\n", o->data.dump().c_str());
     return o;
 }
+Xrender_object_t *Xrender_push_path(nlohmann::json path)
+{
+    Xrender_object_t *o = new Xrender_object_t;
+    o->data = path;
+    o->data["type"] = "path";
+    if (!o->data.contains("id"))
+    {
+        o->data["id"] = "none";
+    }
+    if (!o->data.contains("zindex"))
+    {
+        o->data["zindex"] = 0;
+    }
+    if (!o->data.contains("angle"))
+    {
+        o->data["angle"] = 0;
+    }
+    if (!o->data.contains("visable"))
+    {
+        o->data["visable"] = true;
+    }
+    if (!o->data.contains("width"))
+    {
+        o->data["width"] = 1;
+    }
+    if (!o->data.contains("style"))
+    {
+        o->data["style"] = "solid";
+    }
+    if (!o->data.contains("size"))
+    {
+        o->data["size"] = {
+            {"width", 0}, 
+            {"height", 0}
+        };
+    }
+    if (!o->data.contains("color"))
+    {
+        o->data["color"] = {
+            {"r", 0},
+            {"g", 0},
+            {"b", 0},
+            {"a", 255}
+        };
+    }
+    if (!o->data.contains("points"))
+    {
+        return NULL;
+    }
+    o->data["mouse_over"] = false;
+    o->texture = -1;
+    o->matrix_data = NULL;
+    o->mouse_callback = NULL;
+    object_stack.push_back(o);
+    //printf("(Xrender_push_line) %s\n", o->data.dump().c_str());
+    return o;
+}
 Xrender_object_t *Xrender_push_box(nlohmann::json box)
 {
     Xrender_object_t *o = new Xrender_object_t;

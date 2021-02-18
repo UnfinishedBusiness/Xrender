@@ -759,6 +759,44 @@ bool Xrender_tick()
                 glLineWidth(1);
                 glDisable(GL_LINE_STIPPLE);
             }
+            else if (object_stack[x]->data["type"] == "path")
+            {
+                if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
+                {
+                    /*if (g.line_intersects_with_circle({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)m.x, (double)m.y}, 10))
+                    {
+                        if (object_stack[x]->data["mouse_over"] == false)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_in");
+                            object_stack[x]->data["mouse_over"] = true;
+                        }    
+                    }
+                    else
+                    {
+                        if (object_stack[x]->data["mouse_over"] == true)
+                        {
+                            call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_out");
+                            object_stack[x]->data["mouse_over"] = false;
+                        }
+                    }*/
+                }
+                glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
+                glLineWidth((float)data["width"]);
+                if (data["style"] == "dashed")
+                {
+                    glPushAttrib(GL_ENABLE_BIT);
+                    glLineStipple(10, 0xAAAA);
+                    glEnable(GL_LINE_STIPPLE);
+                }
+                glBegin(GL_LINE_LOOP);
+                    for (int i = 0; i < data["points"].size(); i++)
+                    {
+                        glVertex3f((double)data["points"][i]["x"], (double)data["points"][i]["y"], 0);
+                    }
+                glEnd();
+                glLineWidth(1);
+                glDisable(GL_LINE_STIPPLE);
+            }
             else if (object_stack[x]->data["type"] == "arc")
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
