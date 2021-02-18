@@ -26,6 +26,7 @@
    //define something for Windows (32-bit and 64-bit, this part is common)
    #include <GL/freeglut.h>
    #include <GL/gl.h>
+   #define GL_CLAMP_TO_EDGE 0x812F
    #ifdef _WIN64
       //define something for Windows (64-bit only)
    #else
