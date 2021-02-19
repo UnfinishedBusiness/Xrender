@@ -351,7 +351,7 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
             case 256: keyname = "Escape"; break;
             case 32: keyname = "Space"; break;
             case 258: keyname = "Tab"; break;
-            default: keyname = "None"; break;
+            default: keyname = "None";
         }
     }
     ImGuiIO& io = ImGui::GetIO(); (void)io;
