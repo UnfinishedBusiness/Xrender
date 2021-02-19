@@ -359,7 +359,7 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
     {
         for (int x = 0; x < key_events.size(); x++)
         {
-            if (key_events.at(x).type == "keyup")
+            if (key_events.at(x).type == "keyup" && action == 1)
             {
                 if (key_events.at(x).key == keyname)
                 {
@@ -369,7 +369,17 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
                     }
                 }
             }
-            if (key_events.at(x).type == "keydown")
+            if (key_events.at(x).type == "keydown" && action == 0)
+            {
+                if (key_events.at(x).key == keyname)
+                {
+                    if (key_events.at(x).callback != NULL)
+                    {
+                        key_events.at(x).callback({{"type", key_events.at(x).type}, {"key", keyname}, {"action", action}});
+                    }
+                }
+            }
+            if (key_events.at(x).type == "repeat" && action == 2)
             {
                 if (key_events.at(x).key == keyname)
                 {
