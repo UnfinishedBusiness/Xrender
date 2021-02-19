@@ -365,7 +365,7 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
                 {
                     if (key_events.at(x).callback != NULL)
                     {
-                        key_events.at(x).callback({{"type", key_events.at(x).type}, {"key", keyname}});
+                        key_events.at(x).callback({{"type", key_events.at(x).type}, {"key", keyname}, {"action", action}});
                     }
                 }
             }
@@ -375,7 +375,7 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
                 {
                     if (key_events.at(x).callback != NULL)
                     {
-                        key_events.at(x).callback({{"type", key_events.at(x).type}, {"key", keyname}});
+                        key_events.at(x).callback({{"type", key_events.at(x).type}, {"key", keyname}, {"action", action}});
                     }
                 }
             }
