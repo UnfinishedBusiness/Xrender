@@ -345,12 +345,16 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
     }
     else
     {
-        //printf("Unknown key: %d\n", key);
+        printf("Unknown key: %d\n", key);
         switch(key)
         {
             case 256: keyname = "Escape"; break;
             case 32: keyname = "Space"; break;
             case 258: keyname = "Tab"; break;
+            case 265: keyname = "Up"; break;
+            case 264: keyname = "Down"; break;
+            case 263: keyname = "Left"; break;
+            case 262: keyname = "Right"; break;
             default: keyname = "None";
         }
     }
