@@ -338,6 +338,22 @@ static void Xrender_cursor_position_callback(GLFWwindow* window, double xpos, do
 }
 static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    string keyname;
+    if (glfwGetKeyName(key, scancode) != NULL)
+    {
+        keyname = string(glfwGetKeyName(key, scancode));
+    }
+    else
+    {
+        //printf("Unknown key: %d\n", key);
+        switch(key)
+        {
+            case 256: keyname = "Escape"; break;
+            case 32: keyname = "Space"; break;
+            case 258: keyname = "Tab"; break;
+            default: keyname = "None"; break;
+        }
+    }
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     if (!io.WantCaptureKeyboard || !io.WantCaptureMouse)
     {
@@ -345,11 +361,21 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
         {
             if (key_events.at(x).type == "keyup")
             {
-                if (key_events.at(x).key == string(glfwGetKeyName(key, scancode)))
+                if (key_events.at(x).key == keyname)
                 {
                     if (key_events.at(x).callback != NULL)
                     {
-                        key_events.at(x).callback({});
+                        key_events.at(x).callback({{"type", key_events.at(x).type}, {"key", keyname}});
+                    }
+                }
+            }
+            if (key_events.at(x).type == "keydown")
+            {
+                if (key_events.at(x).key == keyname)
+                {
+                    if (key_events.at(x).callback != NULL)
+                    {
+                        key_events.at(x).callback({{"type", key_events.at(x).type}, {"key", keyname}});
                     }
                 }
             }
