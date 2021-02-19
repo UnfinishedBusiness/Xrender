@@ -60,6 +60,11 @@ vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
 
+vector<Xrender_object_t*> *Xrender_get_object_stack()
+{
+    return &object_stack;
+}
+
 void Xrender_RenderFont(float pos_x, float pos_y, std::string text, Xrender_object_t *o)
 {
     double width, height = 0;

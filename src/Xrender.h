@@ -233,6 +233,11 @@ string Xrender_get_env(const std::string &);
 string Xrender_get_config_dir(string);
 /* End AppDirs & Environment */
 
+/*
+    Returns pointer of object stack
+*/
+vector<Xrender_object_t*> *Xrender_get_object_stack();
+
 /* DXF File Handling */
 
 /*
