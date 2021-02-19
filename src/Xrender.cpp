@@ -345,7 +345,7 @@ static void Xrender_key_callback(GLFWwindow* window, int key, int scancode, int 
     }
     else
     {
-        printf("Unknown key: %d\n", key);
+        //printf("Unknown key: %d\n", key);
         switch(key)
         {
             case 256: keyname = "Escape"; break;
