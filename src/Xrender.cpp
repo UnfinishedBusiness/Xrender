@@ -841,7 +841,7 @@ bool Xrender_tick()
                 }
                 else
                 {
-                    glBegin(GL_LINES);
+                    glBegin(GL_LINE_STRIP);
                 }
                     for (int i = 0; i < data["points"].size(); i++)
                     {
