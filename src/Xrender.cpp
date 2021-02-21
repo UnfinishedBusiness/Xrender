@@ -835,7 +835,14 @@ bool Xrender_tick()
                     glLineStipple(10, 0xAAAA);
                     glEnable(GL_LINE_STIPPLE);
                 }
-                glBegin(GL_LINE_LOOP);
+                if ((bool)data["closed"] == true)
+                {
+                    glBegin(GL_LINE_LOOP);
+                }
+                else
+                {
+                    glBegin(GL_LINES);
+                }
                     for (int i = 0; i < data["points"].size(); i++)
                     {
                         glVertex3f((double)data["points"][i]["x"], (double)data["points"][i]["y"], 0);

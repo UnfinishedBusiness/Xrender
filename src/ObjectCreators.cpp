@@ -206,6 +206,10 @@ Xrender_object_t *Xrender_push_path(nlohmann::json path)
     {
         o->data["style"] = "solid";
     }
+    if (!o->data.contains("closed"))
+    {
+        o->data["closed"] = true;
+    }
     if (!o->data.contains("size"))
     {
         o->data["size"] = {
