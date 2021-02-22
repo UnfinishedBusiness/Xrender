@@ -32,6 +32,7 @@ class HexFileClass
 
     public:
         bool open(const char* targFilePath);
+        void close();
         //Function that will load data from a hexfile on SD card into a flash_page_block_t data structure
         unsigned int load_hex_records_flash_data_block(flash_page_block_t &targBlock );
 

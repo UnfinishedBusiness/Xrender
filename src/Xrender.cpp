@@ -810,7 +810,16 @@ bool Xrender_tick()
             {
                 if (object_stack[x]->mouse_callback != NULL && mouse_check_skip_cycles == MOUSE_CHECK_CYCLE)
                 {
-                    /*if (g.line_intersects_with_circle({{(double)data["start"]["x"], (double)data["start"]["y"]}, {(double)data["end"]["x"], (double)data["end"]["y"]}}, {(double)m.x, (double)m.y}, 10))
+                    bool mouse_is_over_path = false;
+                    for (int i = 1; i < data["points"].size(); i++)
+                    {
+                        if (g.line_intersects_with_circle({{(double)data["points"].at(i-1)["x"], (double)data["points"].at(i-1)["y"]}, {(double)data["points"].at(i)["x"], (double)data["points"].at(i)["y"]}}, {(double)m.x, (double)m.y}, 10))
+                        {
+                            mouse_is_over_path = true;
+                            break; //Dont waste time!
+                        }
+                    }
+                    if (mouse_is_over_path == true)
                     {
                         if (object_stack[x]->data["mouse_over"] == false)
                         {
@@ -825,7 +834,7 @@ bool Xrender_tick()
                             call_mouse_callback(object_stack[x], data, m.x, m.y, "mouse_out");
                             object_stack[x]->data["mouse_over"] = false;
                         }
-                    }*/
+                    }
                 }
                 glColor4f((float)data["color"]["r"] / 255, (float)data["color"]["g"] / 255, (float)data["color"]["b"] / 255, (float)data["color"]["a"] / 255);
                 glLineWidth((float)data["width"]);

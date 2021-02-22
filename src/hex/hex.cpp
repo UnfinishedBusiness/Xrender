@@ -25,6 +25,12 @@ bool HexFileRecord::decode()
    printf("Invalid hex record!\n");
    return false;
 }
+void HexFileClass::close()
+{
+   hexfile.close();
+   hexfile_chars_consumed = 0;
+   hexfile_total_bytes = 0;
+}
 bool HexFileClass::open(const char* targFilePath){
    hexfile_chars_consumed = 0;
    hexfile.open(targFilePath, std::ios::out | std::ios::binary | std::ios::ate);

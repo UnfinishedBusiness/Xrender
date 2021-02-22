@@ -204,6 +204,7 @@ bool stk500_write_program(const char *intelhex, const char *port)
                         {
                             printf("Finished programming successfully!\n");
                             stk_serial.close();
+                            hexFile.close();
                             return true;
                         }
                         else
@@ -216,6 +217,7 @@ bool stk500_write_program(const char *intelhex, const char *port)
                 {
                     printf("Did not recieve signature!\n");
                     stk_serial.close();
+                    hexFile.close();
                     return false;
                 }
             }
@@ -223,15 +225,18 @@ bool stk500_write_program(const char *intelhex, const char *port)
             {
                 printf("Could not establish sync!\n");
                 stk_serial.close();
+                hexFile.close();
                 return false;
             }
         }
         else
         {
             printf("Could not open %s\n", port);
+            hexFile.close();
             return false;
         }
         stk_serial.close();
+        hexFile.close();
         /*for (int x = 0; x < programPages.size(); x++)
         {
             std::cout << "Page: " << programPages[x] << std::endl;
