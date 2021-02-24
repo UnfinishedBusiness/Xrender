@@ -5,7 +5,9 @@
 #include <string>
 #include <vector>
 #include <json/json.h>
-#include <gui/stb_truetype.h>
+#include <primatives/primatives.h>
+#include <primatives/Line.h>
+
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -35,45 +37,32 @@ struct Xrender_timer_t{
     unsigned long intervol;
     bool (*callback)();
 };
-struct int_point_t{
-    int x;
-    int y;
+
+class Xrender_object_t{
+    private:
+        std::string type;
+        Line *line_pointer;
+
+    public:
+        void process_mouse(float mpos_x, float mpos_y);
+        void render();
+
+        void *get_obj();
+
+        Xrender_object_t(Line l)
+        {
+            line_pointer = &l;
+            this->type = line_pointer->get_type_name();
+        }
 };
-struct double_point_t{
-    double x;
-    double y;
-};
-struct double_line_t{
-    double_point_t start;
-    double_point_t end;
-};
-struct Xrender_object_t{
-    nlohmann::json data;
-    GLuint texture;
-    stbtt_bakedchar cdata[96];
-    void (*mouse_callback)(Xrender_object_t*, nlohmann::json);
-    nlohmann::json (*matrix_data)(nlohmann::json);
-};
+
+Xrender_object_t* Xrender_push_object(Line);
 
 extern unsigned long tick_performance;
 extern std::vector<Xrender_object_t*> object_stack;
 extern std::vector<Xrender_key_event_t> key_events;
 extern std::vector<Xrender_timer_t> timers;
 extern std::vector<Xrender_gui_t*> gui_stack;
-
-/*
-    Renders font of specified text
-*/
-void Xrender_RenderFont(float pos_x, float pos_y, std::string text, Xrender_object_t *o);
-/*
-    Reads an ttf from file and creates a texture with the chars renderered to it
-*/
-bool Xrender_InitFontFromFile(const char* filename, int font_size, Xrender_object_t *o);
-
-/*
-    Reads an image from file and creates a texture
-*/
-bool Xrender_ImageToTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height);
 
 
 /*
@@ -117,108 +106,6 @@ bool Xrender_tick();
 */
 double_point_t Xrender_get_current_mouse_position();
 
-
-/*
-    Pushes a key event to the stack
-        e.key = "X" - assci charactor
-        e.type = "keyup" or "keydown"
-        e.callback = void callback() - Function pointer that gets called uppon event
-*/
-void Xrender_push_key_event(Xrender_key_event_t e);
-
-/*
-    Pushes a new text object to the render stack
-        text["textval"] = std::string of text that should be rendered !required!
-        text["font_size"] = int value of desired text font size !required!
-        text["font"] = ttf file path (defaults to ./Sans.ttf)
-        text["position"]["x"] = x_position !required!
-        text["position"]["y"] = y_position !required!
-        text["color"]["r"] = uint8_t (0-255) red value
-        text["color"]["g"] = uint8_t (0-255) blue value
-        text["color"]["b"] = uint8_t (0-255) green value
-        text["color"]["a"] = uint8_t (0-255) alpha value
-*/
-Xrender_object_t * Xrender_push_text(nlohmann::json text);
-
-/*
-    Pushes a new image object to the render stack
-        image["path"] = std::string of image path !required!
-        image["position"]["x"] = x_position !required!
-        image["position"]["y"] = y_position !required!
-        image["color"]["a"] = uint8_t (0-255) alpha value
-*/
-Xrender_object_t *Xrender_push_image(nlohmann::json image);
-
-/*
-    Pushes a new line object to the render stack
-        line["start"]["x"] = Start X !required!
-        line["start"]["y"] = Start Y !required!
-        line["end"]["x"] = End X !required!
-        line["end"]["y"] = End Y !required!
-        line["width"] = line width - defaults to 1
-        line["color"]["r"] = uint8_t (0-255) red value
-        line["color"]["g"] = uint8_t (0-255) blue value
-        line["color"]["b"] = uint8_t (0-255) green value
-        line["color"]["a"] = uint8_t (0-255) alpha value
-*/
-Xrender_object_t *Xrender_push_line(nlohmann::json line);
-
-/*
-    Pushes a new path object to the render stack
-        line["path"] = array of x and y points
-        line["width"] = line width - defaults to 1
-        line["color"]["r"] = uint8_t (0-255) red value
-        line["color"]["g"] = uint8_t (0-255) blue value
-        line["color"]["b"] = uint8_t (0-255) green value
-        line["color"]["a"] = uint8_t (0-255) alpha value
-*/
-Xrender_object_t *Xrender_push_path(nlohmann::json path);
-
-/*
-    Pushes a new box object to the render stack
-        box["tl"]["x"] = Top Left X !required!
-        box["tl"]["y"] = Top Left Y !required!
-        box["br"]["x"] = Bottom Right X !required!
-        box["br"]["y"] = Bottom Right Y !required!
-        box["corner_radius"] = Corner radius of box - defaults to 0
-        box["color"]["r"] = uint8_t (0-255) red value
-        box["color"]["g"] = uint8_t (0-255) blue value
-        box["color"]["b"] = uint8_t (0-255) green value
-        box["color"]["a"] = uint8_t (0-255) alpha value
-*/
-Xrender_object_t *Xrender_push_box(nlohmann::json box);
-
-/*
-    Pushes a new arc object to the render stack
-        arc["center"]["x"] = Center X !required!
-        arc["center"]["y"] = Center Y !required!
-        arc["radius"] = Radius !required!
-        arc["start_angle"] = start angle in degres !required!
-        arc["end_angle"] = end angle in degrees !required!
-        arc["color"]["r"] = uint8_t (0-255) red value
-        arc["color"]["g"] = uint8_t (0-255) blue value
-        arc["color"]["b"] = uint8_t (0-255) green value
-        arc["color"]["a"] = uint8_t (0-255) alpha value
-*/
-Xrender_object_t *Xrender_push_arc(nlohmann::json arc);
-
-/*
-    Pushes a new circle object to the render stack
-        circle["center"]["x"] = Center X !required!
-        circle["center"]["y"] = Center Y !required!
-        circle["radius"] = Radius !required!
-        circle["color"]["r"] = uint8_t (0-255) red value
-        circle["color"]["g"] = uint8_t (0-255) blue value
-        circle["color"]["b"] = uint8_t (0-255) green value
-        circle["color"]["a"] = uint8_t (0-255) alpha value
-*/
-Xrender_object_t *Xrender_push_circle(nlohmann::json circle);
-/* End Object Creation */
-
-
-/* Object Manipulation */
-void Xrender_set_property(std::string, std::string, std::string);
-/* End Object Manipulation */
 
 /* GUI */
 Xrender_gui_t *Xrender_push_gui(bool visable, void (*callback)());

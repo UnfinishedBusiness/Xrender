@@ -1,7 +1,5 @@
 # source files.
 SRC =   ./src/Xrender.cpp $\
-		./src/ObjectCreators.cpp $\
-		./src/Debug.cpp $\
 		./src/Timers.cpp $\
 		./src/AppDirs.cpp $\
 		./src/dxflib/dl_dxf.cpp $\
@@ -30,6 +28,7 @@ SRC =   ./src/Xrender.cpp $\
 		./src/hex/hex.cpp $\
 		./src/gui/imgui_impl_opengl2.cpp $\
 		./src/gui/imgui_impl_glfw.cpp $\
+		./src/primatives/Line.cpp $\
 		
 OBJ = $(SRC:.cpp=.o)
  
