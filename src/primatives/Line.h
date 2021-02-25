@@ -8,7 +8,7 @@
 
 class Line{
     public:
-        PrimativeProperties properties;
+        PrimativeProperties *properties;
         double_point_t start;
         double_point_t end;
         float width;
@@ -16,7 +16,7 @@ class Line{
 
         Line(double_point_t s, double_point_t e)
         {
-            properties = PrimativeProperties();
+            this->properties = new PrimativeProperties();
             this->start = s;
             this->end = e;
         }

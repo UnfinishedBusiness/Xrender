@@ -39,24 +39,23 @@ struct Xrender_timer_t{
 };
 
 class Xrender_object_t{
-    private:
-        std::string type;
-        Line *line_pointer;
-
     public:
+        PrimativeProperties *properties;
+        std::string type;
+        Line *line;
+        
         void process_mouse(float mpos_x, float mpos_y);
         void render();
 
-        void *get_obj();
-
-        Xrender_object_t(Line l)
+        Xrender_object_t(Line *l)
         {
-            line_pointer = &l;
-            this->type = line_pointer->get_type_name();
+            line = l;
+            this->type = line->get_type_name();
+            properties = line->properties;
         }
 };
 
-Xrender_object_t* Xrender_push_object(Line);
+Line* Xrender_push_object(Line*);
 
 extern unsigned long tick_performance;
 extern std::vector<Xrender_object_t*> object_stack;
@@ -135,8 +134,6 @@ vector<Xrender_object_t*> *Xrender_get_object_stack();
 void Xrender_parse_dxf_file(string filename, void (*callback)(nlohmann::json, int, int));
 /* End DXF File handling */
 
-/* Debuging */
-void Xrender_dump_object_stack(); //Debug the object stack
 unsigned long Xrender_get_performance();
 /* End Debugging */
 

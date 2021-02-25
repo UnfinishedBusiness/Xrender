@@ -59,29 +59,25 @@ vector<Xrender_object_t*> object_stack;
 vector<Xrender_timer_t> timers;
 vector<Xrender_gui_t*> gui_stack;
 
-Xrender_object_t* Xrender_push_object(Line l)
-{
+Line* Xrender_push_object(Line *l)
+{  
     Xrender_object_t *o = new Xrender_object_t(l);
     object_stack.push_back(o);
-    return o;
+    return o->line;
 }
 
-void *Xrender_object_t::get_obj()
+void Xrender_object_t::process_mouse(float mpos_x, float mpos_y)
 {
     if (this->type == "line")
     {
-        return (void*)this->line_pointer;
+        this->line->process_mouse(mpos_x, mpos_y);
     }
-}
-void Xrender_object_t::process_mouse(float mpos_x, float mpos_y)
-{
-
 }
 void Xrender_object_t::render()
 {
     if (this->type == "line")
     {
-        this->line_pointer->render();
+        this->line->render();
     }
 }
 
@@ -364,6 +360,7 @@ double_point_t Xrender_get_current_mouse_position()
 {
     double mouseX, mouseY;
     glfwGetCursorPos(core->window, &mouseX, &mouseY);
+    //return {mouseX, mouseY};
     return {mouseX - ((double)core->data["window_width"] / 2.0f), ((double)core->data["window_height"] - mouseY) - ((double)core->data["window_height"] / 2.0f)};
 }
 bool Xrender_tick()
@@ -402,12 +399,13 @@ bool Xrender_tick()
     glLoadIdentity();
     glViewport(0, 0, window_width, window_height);
     glClear(GL_COLOR_BUFFER_BIT);
-	/*sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
-        return lhs->data["zindex"] < rhs->data["zindex"];
-    });*/
+	sort(object_stack.begin(), object_stack.end(), [](auto* lhs, auto* rhs) {
+        return lhs->properties->zindex < rhs->properties->zindex;
+    });
     for (int x = 0; x < object_stack.size(); x++)
     {
         object_stack[x]->render();
+        object_stack[x]->process_mouse(m.x, m.y);
     }
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
     glfwMakeContextCurrent(core->window);
@@ -446,7 +444,10 @@ void Xrender_close()
     free(core->LogFileName);
     delete core;
 }
-
+unsigned long Xrender_get_performance()
+{
+    return tick_performance;
+}
 Xrender_gui_t *Xrender_push_gui(bool visable, void (*callback)())
 {
     Xrender_gui_t *g = new Xrender_gui_t;
