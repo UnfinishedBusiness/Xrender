@@ -114,6 +114,14 @@ Xrender_gui_t *Xrender_push_gui(bool visable, void (*callback)());
 void Xrender_push_timer(unsigned long, bool (*)());
 /* End Timers */
 
+/*
+    Pushes a key event to the stack
+        e.key = "X" - assci charactor
+        e.type = "keyup" or "keydown"
+        e.callback = void callback() - Function pointer that gets called uppon event
+*/
+void Xrender_push_key_event(Xrender_key_event_t e);
+
 /* AppDirs & Environment */
 string Xrender_get_env(const std::string &);
 string Xrender_get_config_dir(string);

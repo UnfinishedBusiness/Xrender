@@ -35,7 +35,7 @@ nlohmann::json *Line::get_data()
 }
 void Line::process_mouse(float mpos_x, float mpos_y)
 {
-    printf("X%.4f, Y%.4f\n", mpos_x, mpos_y);
+    //printf("X%.4f, Y%.4f\n", mpos_x, mpos_y);
     if (this->properties->visable == true)
     {
         Geometry g;
@@ -44,6 +44,7 @@ void Line::process_mouse(float mpos_x, float mpos_y)
             if (this->properties->mouse_over == false)
             {
                 //Figure out a way to fire event from here
+                printf("Mouse in!\n");
                 this->properties->mouse_over = true;
             }    
         }
@@ -52,6 +53,7 @@ void Line::process_mouse(float mpos_x, float mpos_y)
             if (this->properties->mouse_over == true)
             {
                 //Figure out a way to fire event from here
+                printf("Mouse out!\n");
                 this->properties->mouse_over = false;
             }
         }
